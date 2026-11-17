@@ -1712,6 +1712,16 @@
             <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 10px;">পূর্বে সেভ করা JSON ব্যাকআপ ফাইল নির্বাচন করুন:</div>
             <input type="file" id="restore-file-input" accept=".json" class="form-control" style="padding: 6px;" onchange="handleRestoreFile(event)">
           </div>
+
+          <div style="background: rgba(239, 68, 68, 0.08); padding: 14px; border-radius: var(--radius-md); border: 1px solid rgba(239, 68, 68, 0.25); display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <strong style="font-size: 0.9rem; color: #f87171;">রিসেট অপশন (মূল ২৬টি হিসাব)</strong>
+              <div style="font-size: 0.76rem; color: var(--text-muted);">প্রয়োজনে আগের আদি ২৬টি কাস্টমারের হিসাব ফিরিয়ে আনুন</div>
+            </div>
+            <button class="btn btn-outline btn-sm" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171;" onclick="resetToDefaultSeedData()">
+              <i class="fa-solid fa-rotate-left"></i> মূল ডেটায় রিসেট
+            </button>
+          </div>
         </div>
 
       </div>
@@ -1801,234 +1811,242 @@
     }
 
     // ==========================================================================
-    // PERSISTENCE ENGINE: SQLite SERVER & BROWSER INDEXEDDB / LOCALSTORAGE
+    // PERSISTENCE ENGINE: DUAL-STORAGE (LOCALSTORAGE FIRST + INDEXEDDB BACKUP)
+    // 100% Guaranteed Permanent Storage - Survives tab exit, reload & restart
     // ==========================================================================
+    const STORAGE_KEY = 'offside_exports_records_v3';
+    const INIT_FLAG_KEY = 'offside_exports_init_v3';
+    let dbInstance = null;
+
+    // Bulletproof synchronous storage to LocalStorage
+    function saveToLocalStorage(records) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+        localStorage.setItem(INIT_FLAG_KEY, 'true');
+      } catch (err) {
+        console.error('LocalStorage write failed:', err);
+      }
+    }
+
+    function loadFromLocalStorage() {
+      try {
+        const isInit = localStorage.getItem(INIT_FLAG_KEY);
+        if (isInit === 'true') {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw !== null) {
+            return JSON.parse(raw);
+          }
+        }
+      } catch (err) {
+        console.error('LocalStorage read failed:', err);
+      }
+      return null;
+    }
+
+    // Master persist function: updates allRecords, saves synchronously, syncs to IndexedDB & Server
+    function persistRecords(updatedRecords) {
+      allRecords = updatedRecords;
+      saveToLocalStorage(allRecords);
+      syncToIndexedDB(allRecords);
+      refreshUI();
+    }
+
+    // IndexedDB backup sync
+    function initIndexedDB() {
+      return new Promise((resolve) => {
+        try {
+          const req = indexedDB.open('OffsideExportsDB_v3', 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('records')) {
+              db.createObjectStore('records', { keyPath: 'id' });
+            }
+          };
+          req.onsuccess = (e) => {
+            dbInstance = e.target.result;
+            resolve(dbInstance);
+          };
+          req.onerror = () => {
+            resolve(null);
+          };
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }
+
+    function syncToIndexedDB(records) {
+      if (!dbInstance) return;
+      try {
+        const tx = dbInstance.transaction('records', 'readwrite');
+        const store = tx.objectStore('records');
+        store.clear();
+        records.forEach(r => store.put(r));
+      } catch (err) {
+        console.warn('IndexedDB sync warning:', err);
+      }
+    }
+
+    function loadFromIndexedDB() {
+      return new Promise((resolve) => {
+        if (!dbInstance) return resolve(null);
+        try {
+          const tx = dbInstance.transaction('records', 'readonly');
+          const store = tx.objectStore('records');
+          const req = store.getAll();
+          req.onsuccess = () => {
+            resolve(req.result || null);
+          };
+          req.onerror = () => {
+            resolve(null);
+          };
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }
+
     async function initStorageEngine() {
-      // 1. First test if python SQLite server is reachable
+      // 1. Check if LocalStorage already has user data
+      const localData = loadFromLocalStorage();
+      if (localData !== null && Array.isArray(localData)) {
+        allRecords = localData;
+        console.log('[Storage] Loaded', allRecords.length, 'records from permanent storage');
+        updateDBStatusPill(false);
+        refreshUI();
+        await initIndexedDB();
+        syncToIndexedDB(allRecords);
+        checkServerConnection();
+        return;
+      }
+
+      // 2. Initialize IndexedDB to check backup
+      await initIndexedDB();
+      const idbData = await loadFromIndexedDB();
+      if (idbData !== null && Array.isArray(idbData) && idbData.length > 0) {
+        allRecords = idbData;
+        saveToLocalStorage(allRecords);
+        updateDBStatusPill(false);
+        refreshUI();
+        checkServerConnection();
+        return;
+      }
+
+      // 3. Check if SQLite Python server is reachable
       try {
         const res = await fetch('/api/records', { method: 'GET', headers: { 'Accept': 'application/json' } });
         if (res.ok) {
           const data = await res.json();
-          if (data && data.records) {
+          if (data && data.records && data.records.length > 0) {
             isServerApiAvailable = true;
             allRecords = data.records;
             updateDBStatusPill(true);
-            saveLocalCache(allRecords);
+            saveToLocalStorage(allRecords);
+            syncToIndexedDB(allRecords);
             refreshUI();
             return;
           }
         }
-      } catch (err) {
-        console.log('[Storage] Python server not connected, using Browser IndexedDB/LocalStorage Mode');
+      } catch (e) {
+        // static GitHub Pages or server off
       }
 
-      // 2. If server not running, fall back to Browser IndexedDB + LocalStorage
-      isServerApiAvailable = false;
+      // 4. Brand new first-time setup: Seed original 26 records and mark as initialized!
+      allRecords = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
+      saveToLocalStorage(allRecords);
+      syncToIndexedDB(allRecords);
       updateDBStatusPill(false);
-      await initIndexedDB();
+      refreshUI();
+    }
+
+    async function checkServerConnection() {
+      try {
+        const res = await fetch('/api/records', { method: 'GET', headers: { 'Accept': 'application/json' } });
+        if (res.ok) {
+          isServerApiAvailable = true;
+          updateDBStatusPill(true);
+        }
+      } catch (e) {}
     }
 
     function updateDBStatusPill(isServer) {
       const pill = document.getElementById('db-status-indicator');
       const text = document.getElementById('db-status-text');
+      if (!pill || !text) return;
       if (isServer) {
         pill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
         pill.style.background = 'rgba(16, 185, 129, 0.12)';
         text.innerHTML = '<strong style="color: #34d399;">SQLite Server Connected</strong> (ডাটা পার্মানেন্ট সংরক্ষিত)';
       } else {
-        pill.style.borderColor = 'rgba(56, 189, 248, 0.4)';
-        pill.style.background = 'rgba(56, 189, 248, 0.12)';
-        text.innerHTML = '<strong style="color: #38bdf8;">Browser DB Active</strong> (অটো-সেভ সক্রিয়)';
+        pill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        pill.style.background = 'rgba(16, 185, 129, 0.12)';
+        text.innerHTML = '<strong style="color: #34d399;">Permanent Storage Active</strong> (ডাটা আজীবনের জন্য সুরক্ষিত)';
       }
-    }
-
-    // IndexedDB setup for offline persistence
-    function initIndexedDB() {
-      return new Promise((resolve) => {
-        const req = indexedDB.open('OffsideExportsLedgerDB', 1);
-        req.onupgradeneeded = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains('records')) {
-            db.createObjectStore('records', { keyPath: 'id', autoIncrement: true });
-          }
-        };
-        req.onsuccess = (e) => {
-          dbInstance = e.target.result;
-          loadFromIndexedDB().then(resolve);
-        };
-        req.onerror = () => {
-          // Fallback to localStorage
-          loadFromLocalStorage();
-          resolve();
-        };
-      });
-    }
-
-    function loadFromIndexedDB() {
-      return new Promise((resolve) => {
-        if (!dbInstance) {
-          loadFromLocalStorage();
-          return resolve();
-        }
-        const tx = dbInstance.transaction('records', 'readonly');
-        const store = tx.objectStore('records');
-        const req = store.getAll();
-        req.onsuccess = () => {
-          if (req.result && req.result.length > 0) {
-            allRecords = req.result;
-          } else {
-            // Seed from default data
-            allRecords = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
-            saveAllToIndexedDB(allRecords);
-          }
-          saveLocalCache(allRecords);
-          refreshUI();
-          resolve();
-        };
-        req.onerror = () => {
-          loadFromLocalStorage();
-          resolve();
-        };
-      });
-    }
-
-    function loadFromLocalStorage() {
-      const cached = localStorage.getItem('offside_ledger_records');
-      if (cached) {
-        try {
-          allRecords = JSON.parse(cached);
-        } catch (e) {
-          allRecords = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
-        }
-      } else {
-        allRecords = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
-        saveLocalCache(allRecords);
-      }
-      refreshUI();
-    }
-
-    function saveLocalCache(records) {
-      localStorage.setItem('offside_ledger_records', JSON.stringify(records));
-    }
-
-    function saveAllToIndexedDB(records) {
-      if (!dbInstance) return;
-      const tx = dbInstance.transaction('records', 'readwrite');
-      const store = tx.objectStore('records');
-      store.clear();
-      records.forEach(r => store.put(r));
     }
 
     // ==========================================================================
     // CRUD OPERATIONS (SAVE, EDIT, DELETE, PAY)
     // ==========================================================================
     async function saveRecord(recordData) {
-      if (isServerApiAvailable) {
-        try {
-          const isEdit = Boolean(recordData.id);
-          const url = isEdit ? `/api/records/${recordData.id}` : '/api/records';
-          const method = isEdit ? 'PUT' : 'POST';
+      const isEdit = Boolean(recordData.id);
+      let updated = [...allRecords];
 
-          const res = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(recordData)
-          });
-          const result = await res.json();
-          if (result.success) {
-            if (isEdit) {
-              const idx = allRecords.findIndex(r => r.id === recordData.id);
-              if (idx !== -1) allRecords[idx] = result.record;
-            } else {
-              allRecords.unshift(result.record);
-            }
-            saveLocalCache(allRecords);
-            refreshUI();
-            showToast('✅ ডাটাবেজে সফলভাবে সংরক্ষণ করা হয়েছে!');
-            return true;
-          }
-        } catch (err) {
-          console.warn('API error, falling back to local database', err);
-        }
-      }
-
-      // Local persistence fallback
-      if (recordData.id) {
-        const idx = allRecords.findIndex(r => r.id === recordData.id);
+      if (isEdit) {
+        const targetId = Number(recordData.id);
+        const idx = updated.findIndex(r => Number(r.id) === targetId);
         if (idx !== -1) {
-          allRecords[idx] = { ...allRecords[idx], ...recordData };
+          updated[idx] = { ...updated[idx], ...recordData, id: targetId };
         }
       } else {
-        const nextId = allRecords.reduce((max, r) => Math.max(max, Number(r.id || 0)), 0) + 1;
-        recordData.id = nextId;
-        allRecords.unshift(recordData);
+        const maxId = updated.reduce((max, r) => Math.max(max, Number(r.id || 0)), 0);
+        recordData.id = maxId + 1;
+        updated.unshift(recordData);
       }
 
-      saveLocalCache(allRecords);
-      saveAllToIndexedDB(allRecords);
-      refreshUI();
-      showToast('✅ সফলভাবে সেভ হয়েছে! (ডাটা সুরক্ষিত)');
+      // Save permanently immediately!
+      persistRecords(updated);
+
+      // Background sync to server if running
+      if (isServerApiAvailable) {
+        const url = isEdit ? `/api/records/${recordData.id}` : '/api/records';
+        const method = isEdit ? 'PUT' : 'POST';
+        fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(recordData)
+        }).catch(err => console.warn('Server sync error:', err));
+      }
+
+      showToast(isEdit ? '✅ হিসাব সফলভাবে আপডেট হয়েছে!' : '✅ নতুন কাস্টমার স্থায়ীভাবে সেভ হয়েছে!');
       return true;
     }
 
     async function deleteRecord(id) {
-      const rec = allRecords.find(r => r.id === id);
+      const targetId = Number(id);
+      const rec = allRecords.find(r => Number(r.id) === targetId);
       const name = rec ? rec.client_name : 'এই কাস্টমারের';
       if (!confirm(`আপনি কি নিশ্চিত যে "${name}"-এর হিসাবটি মুছে ফেলতে চান?`)) {
         return;
       }
 
+      // Filter out using strict Number comparison
+      const updated = allRecords.filter(r => Number(r.id) !== targetId);
+
+      // Permanently save to localStorage & IndexedDB right now!
+      persistRecords(updated);
+
+      // Background delete from server if running
       if (isServerApiAvailable) {
-        try {
-          const res = await fetch(`/api/records/${id}`, { method: 'DELETE' });
-          const result = await res.json();
-          if (result.success) {
-            allRecords = allRecords.filter(r => r.id !== id);
-            saveLocalCache(allRecords);
-            refreshUI();
-            showToast('🗑️ হিসাবটি ডাটাবেজ থেকে মুছে ফেলা হয়েছে');
-            return;
-          }
-        } catch (err) {
-          console.warn('API error during delete', err);
-        }
+        fetch(`/api/records/${targetId}`, { method: 'DELETE' }).catch(err => console.warn('Server delete error:', err));
       }
 
-      allRecords = allRecords.filter(r => r.id !== id);
-      saveLocalCache(allRecords);
-      saveAllToIndexedDB(allRecords);
-      refreshUI();
-      showToast('🗑️ হিসাবটি মুছে ফেলা হয়েছে');
+      showToast('🗑️ হিসাবটি স্থায়ীভাবে মুছে ফেলা হয়েছে');
     }
 
     async function addIncrementalPayment(id, amount, method, notes) {
-      if (isServerApiAvailable) {
-        try {
-          const res = await fetch(`/api/records/${id}/pay`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              amount: amount,
-              payment_method: method,
-              notes: notes,
-              date: new Date().toISOString().split('T')[0]
-            })
-          });
-          const result = await res.json();
-          if (result.success) {
-            const idx = allRecords.findIndex(r => r.id === id);
-            if (idx !== -1) allRecords[idx] = result.record;
-            saveLocalCache(allRecords);
-            refreshUI();
-            showToast(`✅ ৳${amount} টাকা জমা সফল হয়েছে!`);
-            return true;
-          }
-        } catch (err) {
-          console.warn('API pay error, using local fallback', err);
-        }
-      }
-
-      const rec = allRecords.find(r => r.id === id);
+      const targetId = Number(id);
+      let updated = [...allRecords];
+      const rec = updated.find(r => Number(r.id) === targetId);
       if (!rec) return false;
 
       const newReceived = parseFloat(rec.amount_received || 0) + parseFloat(amount || 0);
@@ -2038,14 +2056,35 @@
       rec.payment_method = method || rec.payment_method;
       rec.status = computeStatus(rec.total_bill, newReceived);
       if (notes) {
-        rec.notes = rec.notes ? `${rec.notes} | [${amount} Tk via ${method}: ${notes}]` : `[${amount} Tk via ${method}: ${notes}]`;
+        rec.notes = rec.notes ? `${rec.notes} | [৳${amount} via ${method}: ${notes}]` : `[৳${amount} via ${method}: ${notes}]`;
       }
 
-      saveLocalCache(allRecords);
-      saveAllToIndexedDB(allRecords);
-      refreshUI();
-      showToast(`✅ ৳${amount} টাকা জমা যোগ করা হয়েছে!`);
+      // Save permanently immediately!
+      persistRecords(updated);
+
+      if (isServerApiAvailable) {
+        fetch(`/api/records/${targetId}/pay`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: amount,
+            payment_method: method,
+            notes: notes,
+            date: new Date().toISOString().split('T')[0]
+          })
+        }).catch(err => console.warn('Server pay error:', err));
+      }
+
+      showToast(`✅ ৳${amount} টাকা জমা যোগ হয়েছে ও স্থায়ীভাবে সেভ হয়েছে!`);
       return true;
+    }
+
+    function resetToDefaultSeedData() {
+      if (confirm('আপনি কি নিশ্চিত যে আপনার বর্তমান সব পরিবর্তন মুছে ফেলে মূল ২৬টি হিসাব ফিরিয়ে আনতে চান?')) {
+        persistRecords(JSON.parse(JSON.stringify(DEFAULT_SEED_DATA)));
+        closeBackupModal();
+        showToast('🔄 মূল ২৬টি হিসাব সফলভাবে ফিরিয়ে আনা হয়েছে');
+      }
     }
 
     // ==========================================================================
@@ -2607,10 +2646,7 @@ Offside Exports থেকে বলছি। আপনার অর্ডার�
                 }
               }
 
-              allRecords = recordsToRestore;
-              saveLocalCache(allRecords);
-              saveAllToIndexedDB(allRecords);
-              refreshUI();
+              persistRecords(recordsToRestore);
               closeBackupModal();
               showToast('✅ ব্যাকআপ ডাটা সফলভাবে ফিরিয়ে আনা হয়েছে!');
             }

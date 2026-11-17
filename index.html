@@ -1905,81 +1905,80 @@
       });
     }
 
+    // XAMPP MySQL API base URL — auto-detects local vs GitHub Pages
+    const XAMPP_API = 'http://localhost/offside-exports/api.php';
+
+    async function tryFetch(url, options = {}) {
+      try {
+        const res = await fetch(url, { ...options, signal: AbortSignal.timeout(3000) });
+        if (!res.ok) return null;
+        return await res.json();
+      } catch (e) {
+        return null;
+      }
+    }
+
     async function initStorageEngine() {
-      // 1. Check if LocalStorage already has user data
-      const localData = loadFromLocalStorage();
-      if (localData !== null && Array.isArray(localData)) {
-        allRecords = localData;
-        console.log('[Storage] Loaded', allRecords.length, 'records from permanent storage');
-        updateDBStatusPill(false);
-        refreshUI();
-        await initIndexedDB();
+      updateDBStatusPill('checking');
+
+      // 1. Try XAMPP MySQL API (highest priority)
+      const apiData = await tryFetch(`${XAMPP_API}?action=records`);
+      if (apiData && apiData.success && Array.isArray(apiData.records)) {
+        isServerApiAvailable = true;
+        allRecords = apiData.records;
+        saveToLocalStorage(allRecords);
         syncToIndexedDB(allRecords);
-        checkServerConnection();
+        updateDBStatusPill('mysql');
+        refreshUI();
         return;
       }
 
-      // 2. Initialize IndexedDB to check backup
+      // 2. Fall back: LocalStorage permanent cache
+      const localData = loadFromLocalStorage();
+      if (localData !== null && Array.isArray(localData)) {
+        allRecords = localData;
+        await initIndexedDB();
+        syncToIndexedDB(allRecords);
+        updateDBStatusPill('local');
+        refreshUI();
+        return;
+      }
+
+      // 3. Fall back: IndexedDB
       await initIndexedDB();
       const idbData = await loadFromIndexedDB();
       if (idbData !== null && Array.isArray(idbData) && idbData.length > 0) {
         allRecords = idbData;
         saveToLocalStorage(allRecords);
-        updateDBStatusPill(false);
+        updateDBStatusPill('local');
         refreshUI();
-        checkServerConnection();
         return;
       }
 
-      // 3. Check if SQLite Python server is reachable
-      try {
-        const res = await fetch('/api/records', { method: 'GET', headers: { 'Accept': 'application/json' } });
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.records && data.records.length > 0) {
-            isServerApiAvailable = true;
-            allRecords = data.records;
-            updateDBStatusPill(true);
-            saveToLocalStorage(allRecords);
-            syncToIndexedDB(allRecords);
-            refreshUI();
-            return;
-          }
-        }
-      } catch (e) {
-        // static GitHub Pages or server off
-      }
-
-      // 4. Brand new first-time setup: Seed original 26 records and mark as initialized!
+      // 4. First time ever: seed the 26 records locally
       allRecords = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
       saveToLocalStorage(allRecords);
       syncToIndexedDB(allRecords);
-      updateDBStatusPill(false);
+      updateDBStatusPill('local');
       refreshUI();
     }
 
-    async function checkServerConnection() {
-      try {
-        const res = await fetch('/api/records', { method: 'GET', headers: { 'Accept': 'application/json' } });
-        if (res.ok) {
-          isServerApiAvailable = true;
-          updateDBStatusPill(true);
-        }
-      } catch (e) {}
-    }
-
-    function updateDBStatusPill(isServer) {
+    function updateDBStatusPill(state) {
       const pill = document.getElementById('db-status-indicator');
       const text = document.getElementById('db-status-text');
       if (!pill || !text) return;
-      if (isServer) {
-        pill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-        pill.style.background = 'rgba(16, 185, 129, 0.12)';
-        text.innerHTML = '<strong style="color: #34d399;">SQLite Server Connected</strong> (ডাটা পার্মানেন্ট সংরক্ষিত)';
+      if (state === 'mysql') {
+        pill.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+        pill.style.background = 'rgba(16, 185, 129, 0.15)';
+        text.innerHTML = '<strong style="color: #34d399;"><i class="fa-solid fa-database"></i> MySQL Connected</strong> (XAMPP ডাটাবেজে সংরক্ষিত)';
+      } else if (state === 'checking') {
+        pill.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+        pill.style.background = 'rgba(245, 158, 11, 0.1)';
+        text.innerHTML = '<strong style="color: #fbbf24;"><i class="fa-solid fa-spinner fa-spin"></i> Connecting...</strong>';
       } else {
-        pill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-        pill.style.background = 'rgba(16, 185, 129, 0.12)';
-        text.innerHTML = '<strong style="color: #34d399;">Permanent Storage Active</strong> (ডাটা আজীবনের জন্য সুরক্ষিত)';
+        pill.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+        pill.style.background = 'rgba(56, 189, 248, 0.1)';
+        text.innerHTML = '<strong style="color: #38bdf8;"><i class="fa-solid fa-hard-drive"></i> Browser Storage Active</strong> (ব্রাউজারে পার্মানেন্ট সেভ)';
       }
     }
 
@@ -2012,15 +2011,26 @@
       // Save permanently immediately!
       persistRecords(updated);
 
-      // Background sync to server if running
+      // Sync to XAMPP MySQL if available
       if (isServerApiAvailable) {
-        const url = isEdit ? `/api/records/${recordData.id}` : '/api/records';
-        const method = isEdit ? 'PUT' : 'POST';
+        const isEditReq = Boolean(recordData.id) && !updated.find(r => r.id === recordData.id && !recordData._isNew);
+        const action = recordData.id && !recordData._isNew ? 'update' : 'add';
+        const url = `${XAMPP_API}?action=${action}${action === 'update' ? '&id=' + recordData.id : ''}`;
         fetch(url, {
-          method: method,
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(recordData)
-        }).catch(err => console.warn('Server sync error:', err));
+        }).then(async res => {
+          const data = await res.json();
+          if (data.success && data.record) {
+            // Sync the returned MySQL record (with correct id/timestamps) back
+            const idx = allRecords.findIndex(r => Number(r.id) === Number(data.record.id));
+            if (idx !== -1) allRecords[idx] = { ...allRecords[idx], ...data.record };
+            else allRecords[0] = { ...allRecords[0], ...data.record };
+            saveToLocalStorage(allRecords);
+            refreshUI();
+          }
+        }).catch(err => console.warn('MySQL sync error:', err));
       }
 
       showToast(isEdit ? '✅ হিসাব সফলভাবে আপডেট হয়েছে!' : '✅ নতুন কাস্টমার স্থায়ীভাবে সেভ হয়েছে!');
@@ -2041,9 +2051,9 @@
       // Permanently save to localStorage & IndexedDB right now!
       persistRecords(updated);
 
-      // Background delete from server if running
+      // Sync delete to XAMPP MySQL if available
       if (isServerApiAvailable) {
-        fetch(`/api/records/${targetId}`, { method: 'DELETE' }).catch(err => console.warn('Server delete error:', err));
+        fetch(`${XAMPP_API}?action=delete&id=${targetId}`, { method: 'POST' }).catch(err => console.warn('MySQL delete error:', err));
       }
 
       showToast('🗑️ হিসাবটি স্থায়ীভাবে মুছে ফেলা হয়েছে');
@@ -2069,7 +2079,7 @@
       persistRecords(updated);
 
       if (isServerApiAvailable) {
-        fetch(`/api/records/${targetId}/pay`, {
+        fetch(`${XAMPP_API}?action=pay&id=${targetId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -2078,7 +2088,7 @@
             notes: notes,
             date: new Date().toISOString().split('T')[0]
           })
-        }).catch(err => console.warn('Server pay error:', err));
+        }).catch(err => console.warn('MySQL pay error:', err));
       }
 
       showToast(`✅ ৳${amount} টাকা জমা যোগ হয়েছে ও স্থায়ীভাবে সেভ হয়েছে!`);
@@ -2560,6 +2570,10 @@ Offside Exports থেকে বলছি। আপনার অর্ডার�
 
     // Export to Excel / CSV
     function exportToExcelCSV() {
+      if (isServerApiAvailable) {
+        window.open(`${XAMPP_API}?action=export_csv`, '_blank');
+        return;
+      }
       if (allRecords.length === 0) {
         alert('ডাউনলোড করার মতো কোনো রেকর্ড নেই');
         return;

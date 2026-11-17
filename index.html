@@ -1816,7 +1816,6 @@
     // ==========================================================================
     const STORAGE_KEY = 'offside_exports_records_v3';
     const INIT_FLAG_KEY = 'offside_exports_init_v3';
-    let dbInstance = null;
 
     // Bulletproof synchronous storage to LocalStorage
     function saveToLocalStorage(records) {
@@ -1990,6 +1989,13 @@
     async function saveRecord(recordData) {
       const isEdit = Boolean(recordData.id);
       let updated = [...allRecords];
+
+      const bill = parseFloat(recordData.total_bill || 0);
+      const rcvd = parseFloat(recordData.amount_received || 0);
+      recordData.total_bill = bill;
+      recordData.amount_received = rcvd;
+      recordData.receivable_due = bill - rcvd;
+      recordData.status = computeStatus(bill, rcvd);
 
       if (isEdit) {
         const targetId = Number(recordData.id);

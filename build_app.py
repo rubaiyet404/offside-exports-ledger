@@ -2106,6 +2106,200 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       }
     }
 
+    // ==========================================================================
+    // UI RENDERING & CALCULATIONS
+    // ==========================================================================
+    function refreshUI() {
+      updateKPICards();
+      renderTable();
+    }
+
+    function updateKPICards() {
+      let totalBill = 0;
+      let totalReceived = 0;
+      let totalDue = 0;
+      let paidCount = 0;
+      let partialCount = 0;
+      let dueCount = 0;
+
+      allRecords.forEach(r => {
+        const bill = parseFloat(r.total_bill || 0);
+        const rcvd = parseFloat(r.amount_received || 0);
+        const due = parseFloat(r.receivable_due || (bill - rcvd));
+
+        totalBill += bill;
+        totalReceived += rcvd;
+        totalDue += due;
+
+        const status = r.status || computeStatus(bill, rcvd);
+        if (status === 'paid') paidCount++;
+        else if (status === 'partial') partialCount++;
+        else dueCount++;
+      });
+
+      document.getElementById('kpi-total-bill').textContent = formatBDT(totalBill);
+      document.getElementById('kpi-total-received').textContent = formatBDT(totalReceived);
+      document.getElementById('kpi-total-due').textContent = formatBDT(totalDue);
+      document.getElementById('kpi-total-clients').textContent = allRecords.length;
+
+      document.getElementById('kpi-paid-count').textContent = paidCount;
+      document.getElementById('kpi-partial-count').textContent = partialCount;
+      document.getElementById('kpi-due-count').textContent = dueCount;
+
+      const rate = totalBill > 0 ? ((totalReceived / totalBill) * 100).toFixed(1) : 0;
+      document.getElementById('kpi-collection-rate').textContent = `${rate}%`;
+      document.getElementById('kpi-progress-bar').style.width = `${Math.min(rate, 100)}%`;
+
+      // Filter tabs counts
+      document.getElementById('filter-count-all').textContent = allRecords.length;
+      document.getElementById('filter-count-due').textContent = dueCount;
+      document.getElementById('filter-count-partial').textContent = partialCount;
+      document.getElementById('filter-count-paid').textContent = paidCount;
+    }
+
+    function renderTable() {
+      const tbody = document.getElementById('ledger-table-body');
+      const emptyState = document.getElementById('table-empty-placeholder');
+      tbody.innerHTML = '';
+
+      const query = (document.getElementById('table-search-input').value || '').trim().toLowerCase();
+      const methodFilter = document.getElementById('method-filter-select').value;
+      const sortVal = document.getElementById('sort-select').value;
+
+      // Filter
+      let filtered = allRecords.filter(r => {
+        const bill = parseFloat(r.total_bill || 0);
+        const rcvd = parseFloat(r.amount_received || 0);
+        const status = r.status || computeStatus(bill, rcvd);
+
+        // Status filter
+        if (currentFilterStatus !== 'all' && status !== currentFilterStatus) {
+          return false;
+        }
+
+        // Method filter
+        if (methodFilter !== 'all') {
+          if (methodFilter === 'none') {
+            if (r.payment_method) return false;
+          } else {
+            if (!r.payment_method || !r.payment_method.toLowerCase().includes(methodFilter.toLowerCase())) {
+              return false;
+            }
+          }
+        }
+
+        // Query search
+        if (query) {
+          const matchName = (r.client_name || '').toLowerCase().includes(query);
+          const matchInv = (r.invoice_no || '').toLowerCase().includes(query);
+          const matchPhone = (r.phone || '').toLowerCase().includes(query);
+          const matchNotes = (r.notes || '').toLowerCase().includes(query);
+          if (!matchName && !matchInv && !matchPhone && !matchNotes) return false;
+        }
+
+        return true;
+      });
+
+      // Sort
+      filtered.sort((a, b) => {
+        if (sortVal === 'date-desc') return new Date(b.date || 0) - new Date(a.date || 0);
+        if (sortVal === 'date-asc') return new Date(a.date || 0) - new Date(b.date || 0);
+        if (sortVal === 'due-desc') return parseFloat(b.receivable_due || 0) - parseFloat(a.receivable_due || 0);
+        if (sortVal === 'bill-desc') return parseFloat(b.total_bill || 0) - parseFloat(a.total_bill || 0);
+        if (sortVal === 'name-asc') return (a.client_name || '').localeCompare(b.client_name || '');
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      }
+      emptyState.style.display = 'none';
+
+      filtered.forEach((r, idx) => {
+        const bill = parseFloat(r.total_bill || 0);
+        const rcvd = parseFloat(r.amount_received || 0);
+        const due = parseFloat(r.receivable_due != null ? r.receivable_due : (bill - rcvd));
+        const status = r.status || computeStatus(bill, rcvd);
+
+        let statusBadge = '';
+        if (status === 'paid') {
+          statusBadge = '<span class="badge-status paid"><i class="fa-solid fa-circle-check"></i> পরিশোধ</span>';
+        } else if (status === 'partial') {
+          statusBadge = '<span class="badge-status partial"><i class="fa-solid fa-circle-half-stroke"></i> আংশিক</span>';
+        } else {
+          statusBadge = '<span class="badge-status due"><i class="fa-solid fa-circle-xmark"></i> বাকি</span>';
+        }
+
+        // Payment method badge
+        let methodBadge = '<span style="color: var(--text-dim);">-</span>';
+        if (r.payment_method) {
+          const mLower = r.payment_method.toLowerCase();
+          if (mLower.includes('bkash')) {
+            methodBadge = `<span class="pay-badge bkash"><i class="fa-solid fa-mobile-screen"></i> ${r.payment_method}</span>`;
+          } else if (mLower.includes('rocket')) {
+            methodBadge = `<span class="pay-badge rocket"><i class="fa-solid fa-bolt"></i> ${r.payment_method}</span>`;
+          } else if (mLower.includes('cash')) {
+            methodBadge = `<span class="pay-badge cash"><i class="fa-solid fa-money-bill-wave"></i> ${r.payment_method}</span>`;
+          } else {
+            methodBadge = `<span class="pay-badge nagad">${r.payment_method}</span>`;
+          }
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-center" style="color: var(--text-dim); font-size: 0.78rem;">${idx + 1}</td>
+          <td style="white-space: nowrap; font-size: 0.82rem; color: #cbd5e1;">
+            <i class="fa-regular fa-calendar" style="color: var(--text-dim); margin-right: 4px;"></i>
+            ${formatDateDisplay(r.date)}
+          </td>
+          <td>
+            <div class="client-cell">
+              <span>${escapeHtml(r.client_name)}</span>
+              ${r.phone ? `<span class="client-sub"><i class="fa-solid fa-phone" style="font-size: 0.65rem;"></i> ${r.phone}</span>` : ''}
+            </div>
+          </td>
+          <td style="font-family: 'Outfit', sans-serif; font-size: 0.82rem; color: #94a3b8;">
+            ${r.invoice_no ? escapeHtml(r.invoice_no) : '-'}
+          </td>
+          <td class="text-right amount-val">৳ ${formatBDT(bill)}</td>
+          <td class="text-right amount-val" style="color: #34d399;">${rcvd > 0 ? `৳ ${formatBDT(rcvd)}` : '-'}</td>
+          <td class="text-right">
+            <span class="amount-due-highlight ${due <= 0 ? 'cleared' : ''}">
+              ${due <= 0 ? '৳ 0 (পরিশোধ)' : `৳ ${formatBDT(due)}`}
+            </span>
+          </td>
+          <td>${methodBadge}</td>
+          <td style="font-size: 0.8rem; color: #94a3b8;">${r.expected_date ? formatDateDisplay(r.expected_date) : '-'}</td>
+          <td class="text-center">${statusBadge}</td>
+          <td style="max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8rem; color: #94a3b8;" title="${escapeHtml(r.notes || '')}">
+            ${r.notes ? escapeHtml(r.notes) : '-'}
+          </td>
+          <td>
+            <div class="row-actions">
+              <button class="action-btn pay" onclick="openQuickPayModal(${r.id})" title="টাকা জমা নিন">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+              <button class="action-btn" onclick="openReceiptModal(${r.id})" title="মানি রসিদ দেখুন ও প্রিন্ট করুন">
+                <i class="fa-solid fa-receipt"></i>
+              </button>
+              <button class="action-btn wa" onclick="sendWhatsAppReminder(${r.id})" title="কাস্টমারকে WhatsApp এ হিসাব পাঠান">
+                <i class="fa-brands fa-whatsapp"></i>
+              </button>
+              <button class="action-btn" onclick="openEditModal(${r.id})" title="সম্পাদনা / এডিট করুন">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="action-btn del" onclick="deleteRecord(${r.id})" title="ডিলিট করুন">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    
     function formatDateDisplay(dStr) {
       if (!dStr) return '-';
       try {

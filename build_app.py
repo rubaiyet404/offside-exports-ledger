@@ -1824,6 +1824,12 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       return "due";
     }
 
+    // Number formatting helper
+    function formatBDT(num) {
+      if (isNaN(num) || num === null || num === undefined) return "0";
+      return Number(num).toLocaleString("en-IN", { maximumFractionDigits: 2 });
+    }
+
     // ==========================================================================
     // PERSISTENCE ENGINE: FIREBASE REALTIME + LOCALSTORAGE + INDEXEDDB + MYSQL
     // ==========================================================================

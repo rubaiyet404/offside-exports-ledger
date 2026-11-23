@@ -1749,24 +1749,58 @@ HTML_CONTENT = r'''<!DOCTYPE html>
   <!-- Toast Container -->
   <div class="toast-container" id="toast-box"></div>
 
+  <!-- Firebase App and Realtime Database SDKs (v9 Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
   <!-- ==========================================================================
        JAVASCRIPT APPLICATION ENGINE
        Supports SQLite Server API + IndexedDB / LocalStorage Automatic Fallback
        ========================================================================== -->
   <script>
     // Initial 26 records seeded directly from the user's Google Sheet screenshot
+    // Initial seed data
     const DEFAULT_SEED_DATA = [];
+
+    // ==========================================================================
+    // FIREBASE REALTIME CLOUD DATABASE CONFIGURATION
+    // Enables instant live synchronization across all mobile phones & PCs
+    // ==========================================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2JyPThnX0x1exOgXZU0NiZRypvuCLwYU",
+      authDomain: "offside-exports.firebaseapp.com",
+      databaseURL: "https://offside-exports-default-rtdb.firebaseio.com",
+      projectId: "offside-exports",
+      storageBucket: "offside-exports.firebasestorage.app",
+      messagingSenderId: "958045859769",
+      appId: "1:958045859769:web:e46c0383531f4a93cc9068",
+      measurementId: "G-C05T8GYVY5"
+    };
+
+    let rtdb = null;
+    let isCloudSynced = false;
+
+    try {
+      if (typeof firebase !== "undefined") {
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+        }
+        rtdb = firebase.database();
+      }
+    } catch (fbInitErr) {
+      console.warn("Firebase init warning:", fbInitErr);
+    }
 
     // State Variables
     let allRecords = [];
-    let currentFilterStatus = 'all';
+    let currentFilterStatus = "all";
     let isServerApiAvailable = false;
     let dbInstance = null;
 
     // Toast helper
-    function showToast(message, type = 'success') {
-      const box = document.getElementById('toast-box');
-      const toast = document.createElement('div');
+    function showToast(message, type = "success") {
+      const box = document.getElementById("toast-box");
+      const toast = document.createElement("div");
       toast.className = `toast ${type}`;
       toast.innerHTML = `
         <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
@@ -1774,62 +1808,54 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       `;
       box.appendChild(toast);
       setTimeout(() => {
-        toast.style.transition = 'all 0.3s ease';
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = "all 0.3s ease";
+        toast.style.opacity = "0";
+        toast.style.transform = "translateY(10px)";
         setTimeout(() => toast.remove(), 300);
       }, 3500);
     }
 
-    // Number formatting helper
-    function formatBDT(num) {
-      if (isNaN(num)) return '0';
-      return Number(num).toLocaleString('en-IN', { maximumFractionDigits: 2 });
-    }
-
-    // Status calculator
-    function computeStatus(bill, received) {
-      bill = parseFloat(bill || 0);
-      received = parseFloat(received || 0);
-      if (bill <= 0) return 'paid';
-      if (received >= bill) return 'paid';
-      if (received > 0) return 'partial';
-      return 'due';
+    // Helper: calculate payment status
+    function computeStatus(totalBill, amountReceived) {
+      const bill = parseFloat(totalBill || 0);
+      const rcvd = parseFloat(amountReceived || 0);
+      if (rcvd >= bill && bill > 0) return "paid";
+      if (rcvd > 0 && rcvd < bill) return "partial";
+      return "due";
     }
 
     // ==========================================================================
-    // PERSISTENCE ENGINE: DUAL-STORAGE (LOCALSTORAGE FIRST + INDEXEDDB BACKUP)
-    // 100% Guaranteed Permanent Storage - Survives tab exit, reload & restart
+    // PERSISTENCE ENGINE: FIREBASE REALTIME + LOCALSTORAGE + INDEXEDDB + MYSQL
     // ==========================================================================
-    const STORAGE_KEY = 'offside_exports_records_v4';
-    const INIT_FLAG_KEY = 'offside_exports_init_v4';
+    const STORAGE_KEY = "offside_exports_records_v4";
+    const INIT_FLAG_KEY = "offside_exports_init_v4";
 
-    // Bulletproof synchronous storage to LocalStorage
+    // Synchronous LocalStorage save
     function saveToLocalStorage(records) {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-        localStorage.setItem(INIT_FLAG_KEY, 'true');
+        localStorage.setItem(INIT_FLAG_KEY, "true");
       } catch (err) {
-        console.error('LocalStorage write failed:', err);
+        console.error("LocalStorage write failed:", err);
       }
     }
 
     function loadFromLocalStorage() {
       try {
         const isInit = localStorage.getItem(INIT_FLAG_KEY);
-        if (isInit === 'true') {
+        if (isInit === "true") {
           const raw = localStorage.getItem(STORAGE_KEY);
           if (raw !== null) {
             return JSON.parse(raw);
           }
         }
       } catch (err) {
-        console.error('LocalStorage read failed:', err);
+        console.error("LocalStorage read failed:", err);
       }
       return null;
     }
 
-    // Master persist function: updates allRecords, saves synchronously, syncs to IndexedDB & Server
+    // Master persist function: updates allRecords, saves to LocalStorage, syncs to IndexedDB
     function persistRecords(updatedRecords) {
       allRecords = updatedRecords;
       saveToLocalStorage(allRecords);
@@ -1841,11 +1867,11 @@ HTML_CONTENT = r'''<!DOCTYPE html>
     function initIndexedDB() {
       return new Promise((resolve) => {
         try {
-          const req = indexedDB.open('OffsideExportsDB_v4', 1);
+          const req = indexedDB.open("OffsideExportsDB_v4", 1);
           req.onupgradeneeded = (e) => {
             const db = e.target.result;
-            if (!db.objectStoreNames.contains('records')) {
-              db.createObjectStore('records', { keyPath: 'id' });
+            if (!db.objectStoreNames.contains("records")) {
+              db.createObjectStore("records", { keyPath: "id" });
             }
           };
           req.onsuccess = (e) => {
@@ -1864,21 +1890,24 @@ HTML_CONTENT = r'''<!DOCTYPE html>
     function syncToIndexedDB(records) {
       if (!dbInstance) return;
       try {
-        const tx = dbInstance.transaction('records', 'readwrite');
-        const store = tx.objectStore('records');
+        const tx = dbInstance.transaction("records", "readwrite");
+        const store = tx.objectStore("records");
         store.clear();
         records.forEach(r => store.put(r));
-      } catch (err) {
-        console.warn('IndexedDB sync warning:', err);
+      } catch (e) {
+        console.warn("IndexedDB sync error:", e);
       }
     }
 
     function loadFromIndexedDB() {
       return new Promise((resolve) => {
-        if (!dbInstance) return resolve(null);
+        if (!dbInstance) {
+          resolve(null);
+          return;
+        }
         try {
-          const tx = dbInstance.transaction('records', 'readonly');
-          const store = tx.objectStore('records');
+          const tx = dbInstance.transaction("records", "readonly");
+          const store = tx.objectStore("records");
           const req = store.getAll();
           req.onsuccess = () => {
             resolve(req.result || null);
@@ -1892,8 +1921,8 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       });
     }
 
-    // XAMPP MySQL API base URL — auto-detects local vs GitHub Pages
-    const XAMPP_API = 'http://localhost/offside-exports/api.php';
+    // XAMPP MySQL API base URL
+    const XAMPP_API = "http://localhost/offside-exports/api.php";
 
     async function tryFetch(url, options = {}) {
       try {
@@ -1906,71 +1935,128 @@ HTML_CONTENT = r'''<!DOCTYPE html>
     }
 
     async function initStorageEngine() {
-      updateDBStatusPill('checking');
+      updateDBStatusPill("checking");
 
-      // 1. Try XAMPP MySQL API (highest priority)
+      // 1. Primary: Firebase Cloud Realtime Database (instant real-time sync across all devices)
+      if (rtdb) {
+        try {
+          // Listen to connection status
+          rtdb.ref(".info/connected").on("value", (snap) => {
+            if (snap.val() === true) {
+              isCloudSynced = true;
+              updateDBStatusPill("cloud");
+            } else if (!isCloudSynced) {
+              updateDBStatusPill("checking");
+            }
+          });
+
+          // Listen to real-time changes
+          rtdb.ref("records").on("value", (snapshot) => {
+            const data = snapshot.val();
+            let recordsList = [];
+            if (data) {
+              if (Array.isArray(data)) {
+                recordsList = data.filter(item => item != null);
+              } else if (typeof data === "object") {
+                recordsList = Object.values(data);
+              }
+              // Sort descending by id
+              recordsList.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+            }
+            allRecords = recordsList;
+            saveToLocalStorage(allRecords);
+            syncToIndexedDB(allRecords);
+            isCloudSynced = true;
+            updateDBStatusPill("cloud");
+            refreshUI();
+          }, (err) => {
+            console.warn("Firebase realtime error, falling back:", err);
+            fallbackStorage();
+          });
+
+          // Also check local XAMPP in background
+          tryFetch(`${XAMPP_API}?action=records`).then(apiData => {
+            if (apiData && apiData.success) {
+              isServerApiAvailable = true;
+            }
+          });
+
+          return;
+        } catch (err) {
+          console.warn("Firebase connection error, falling back:", err);
+        }
+      }
+
+      fallbackStorage();
+    }
+
+    async function fallbackStorage() {
+      // 2. Try XAMPP MySQL API
       const apiData = await tryFetch(`${XAMPP_API}?action=records`);
       if (apiData && apiData.success && Array.isArray(apiData.records)) {
         isServerApiAvailable = true;
         allRecords = apiData.records;
         saveToLocalStorage(allRecords);
         syncToIndexedDB(allRecords);
-        updateDBStatusPill('mysql');
+        updateDBStatusPill("mysql");
         refreshUI();
         return;
       }
 
-      // 2. Fall back: LocalStorage permanent cache
+      // 3. Fall back: LocalStorage permanent cache
       const localData = loadFromLocalStorage();
       if (localData !== null && Array.isArray(localData)) {
         allRecords = localData;
         await initIndexedDB();
         syncToIndexedDB(allRecords);
-        updateDBStatusPill('local');
+        updateDBStatusPill("local");
         refreshUI();
         return;
       }
 
-      // 3. Fall back: IndexedDB
+      // 4. Fall back: IndexedDB
       await initIndexedDB();
       const idbData = await loadFromIndexedDB();
       if (idbData !== null && Array.isArray(idbData) && idbData.length > 0) {
         allRecords = idbData;
         saveToLocalStorage(allRecords);
-        updateDBStatusPill('local');
+        updateDBStatusPill("local");
         refreshUI();
         return;
       }
 
-      // 4. First time ever: seed the 26 records locally
       allRecords = JSON.parse(JSON.stringify(DEFAULT_SEED_DATA));
       saveToLocalStorage(allRecords);
       syncToIndexedDB(allRecords);
-      updateDBStatusPill('local');
+      updateDBStatusPill("local");
       refreshUI();
     }
 
     function updateDBStatusPill(state) {
-      const pill = document.getElementById('db-status-indicator');
-      const text = document.getElementById('db-status-text');
+      const pill = document.getElementById("db-status-indicator");
+      const text = document.getElementById("db-status-text");
       if (!pill || !text) return;
-      if (state === 'mysql') {
-        pill.style.borderColor = 'rgba(16, 185, 129, 0.5)';
-        pill.style.background = 'rgba(16, 185, 129, 0.15)';
+      if (state === "cloud") {
+        pill.style.borderColor = "rgba(16, 185, 129, 0.5)";
+        pill.style.background = "rgba(16, 185, 129, 0.15)";
+        text.innerHTML = '<strong style="color: #34d399;"><i class="fa-solid fa-cloud"></i> Cloud Live Connected</strong> (সকল ডিভাইসে লাইভ সিঙ্ক চালু)';
+      } else if (state === "mysql") {
+        pill.style.borderColor = "rgba(16, 185, 129, 0.5)";
+        pill.style.background = "rgba(16, 185, 129, 0.15)";
         text.innerHTML = '<strong style="color: #34d399;"><i class="fa-solid fa-database"></i> MySQL Connected</strong> (XAMPP ডাটাবেজে সংরক্ষিত)';
-      } else if (state === 'checking') {
-        pill.style.borderColor = 'rgba(245, 158, 11, 0.4)';
-        pill.style.background = 'rgba(245, 158, 11, 0.1)';
-        text.innerHTML = '<strong style="color: #fbbf24;"><i class="fa-solid fa-spinner fa-spin"></i> Connecting...</strong>';
+      } else if (state === "checking") {
+        pill.style.borderColor = "rgba(245, 158, 11, 0.4)";
+        pill.style.background = "rgba(245, 158, 11, 0.1)";
+        text.innerHTML = '<strong style="color: #fbbf24;"><i class="fa-solid fa-spinner fa-spin"></i> Connecting Cloud...</strong>';
       } else {
-        pill.style.borderColor = 'rgba(56, 189, 248, 0.4)';
-        pill.style.background = 'rgba(56, 189, 248, 0.1)';
+        pill.style.borderColor = "rgba(56, 189, 248, 0.4)";
+        pill.style.background = "rgba(56, 189, 248, 0.1)";
         text.innerHTML = '<strong style="color: #38bdf8;"><i class="fa-solid fa-hard-drive"></i> Browser Storage Active</strong> (ব্রাউজারে পার্মানেন্ট সেভ)';
       }
     }
 
     // ==========================================================================
-    // CRUD OPERATIONS (SAVE, EDIT, DELETE, PAY)
+    // CRUD OPERATIONS (SAVE, EDIT, DELETE, PAY) WITH INSTANT CLOUD BROADCAST
     // ==========================================================================
     async function saveRecord(recordData) {
       const isEdit = Boolean(recordData.id);
@@ -1982,71 +2068,84 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       recordData.receivable_due = bill - rcvd;
       recordData.status = computeStatus(bill, rcvd);
 
-      // If XAMPP MySQL API is available, perform request first
-      if (isServerApiAvailable) {
+      if (!recordData.id) {
+        // Timestamp-based collision-proof unique ID
+        recordData.id = Date.now();
+      } else {
+        recordData.id = Number(recordData.id);
+      }
+
+      // 1. Firebase Cloud Realtime Database (broadcasts to all open phones and laptops)
+      if (rtdb) {
         try {
-          const action = isEdit ? 'update' : 'add';
-          const url = `${XAMPP_API}?action=${action}${isEdit ? '&id=' + recordData.id : ''}`;
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(recordData)
-          });
-          const data = await res.json();
-          if (data && data.success && data.record) {
-            const savedRec = { ...data.record, id: Number(data.record.id) };
-            if (isEdit) {
-              const idx = allRecords.findIndex(r => Number(r.id) === Number(recordData.id));
-              if (idx !== -1) allRecords[idx] = savedRec;
-            } else {
-              allRecords.unshift(savedRec);
-            }
-            persistRecords(allRecords);
-            showToast(isEdit ? '✅ হিসাব সফলভাবে আপডেট হয়েছে!' : '✅ নতুন কাস্টমার MySQL-এ স্থায়ীভাবে সেভ হয়েছে!');
-            return true;
-          }
+          await rtdb.ref("records/" + recordData.id).set(recordData);
+          showToast(isEdit ? "✅ হিসাব সফলভাবে আপডেট হয়েছে!" : "✅ নতুন কাস্টমার ক্লাউডে সেভ হয়েছে (সবার ফোনে লাইভ)!");
         } catch (err) {
-          console.warn('MySQL save failed, saving to local storage:', err);
+          console.warn("Firebase save error:", err);
         }
       }
 
-      // Offline / LocalStorage fallback
-      let updated = [...allRecords];
-      if (isEdit) {
-        const targetId = Number(recordData.id);
-        const idx = updated.findIndex(r => Number(r.id) === targetId);
-        if (idx !== -1) {
-          updated[idx] = { ...updated[idx], ...recordData, id: targetId };
+      // 2. Local XAMPP MySQL sync if available
+      if (isServerApiAvailable) {
+        try {
+          const action = isEdit ? "update" : "add";
+          const url = `${XAMPP_API}?action=${action}${isEdit ? "&id=" + recordData.id : ""}`;
+          await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(recordData)
+          });
+        } catch (err) {
+          console.warn("MySQL save sync error:", err);
         }
+      }
+
+      // 3. Local memory & storage fallback
+      let updated = [...allRecords];
+      const targetId = Number(recordData.id);
+      const idx = updated.findIndex(r => Number(r.id) === targetId);
+      if (idx !== -1) {
+        updated[idx] = { ...updated[idx], ...recordData };
       } else {
-        const maxId = updated.reduce((max, r) => Math.max(max, Number(r.id || 0)), 0);
-        recordData.id = maxId + 1;
         updated.unshift(recordData);
       }
       persistRecords(updated);
-      showToast(isEdit ? '✅ হিসাব সফলভাবে আপডেট হয়েছে!' : '✅ নতুন কাস্টমার স্থায়ীভাবে সেভ হয়েছে!');
+
+      if (!rtdb) {
+        showToast(isEdit ? "✅ হিসাব সফলভাবে আপডেট হয়েছে!" : "✅ নতুন কাস্টমার স্থায়ীভাবে সেভ হয়েছে!");
+      }
       return true;
     }
 
     async function deleteRecord(id) {
       const targetId = Number(id);
       const rec = allRecords.find(r => Number(r.id) === targetId);
-      const name = rec ? rec.client_name : 'এই কাস্টমারের';
+      const name = rec ? rec.client_name : "এই কাস্টমারের";
       if (!confirm(`আপনি কি নিশ্চিত যে "${name}"-এর হিসাবটি মুছে ফেলতে চান?`)) {
         return;
       }
 
+      // 1. Delete from Firebase Cloud (instant broadcast to all devices)
+      if (rtdb) {
+        try {
+          await rtdb.ref("records/" + targetId).remove();
+        } catch (err) {
+          console.warn("Firebase delete error:", err);
+        }
+      }
+
+      // 2. Delete from XAMPP MySQL
       if (isServerApiAvailable) {
         try {
-          await fetch(`${XAMPP_API}?action=delete&id=${targetId}`, { method: 'POST' });
+          await fetch(`${XAMPP_API}?action=delete&id=${targetId}`, { method: "POST" });
         } catch (err) {
-          console.warn('MySQL delete error:', err);
+          console.warn("MySQL delete error:", err);
         }
       }
 
       const updated = allRecords.filter(r => Number(r.id) !== targetId);
       persistRecords(updated);
-      showToast('🗑️ হিসাবটি স্থায়ীভাবে মুছে ফেলা হয়েছে');
+      showToast("🗑️ হিসাবটি ক্লাউড থেকে স্থায়ীভাবে মুছে ফেলা হয়েছে");
     }
 
     async function addIncrementalPayment(id, amount, method, notes) {
@@ -2064,51 +2163,63 @@ HTML_CONTENT = r'''<!DOCTYPE html>
         rec.notes = rec.notes ? `${rec.notes} | [৳${amount} via ${method}: ${notes}]` : `[৳${amount} via ${method}: ${notes}]`;
       }
 
+      // 1. Update Firebase Cloud (broadcasts to all open phones and laptops)
+      if (rtdb) {
+        try {
+          await rtdb.ref("records/" + targetId).set(rec);
+          // Log payment transaction
+          rtdb.ref("payments/" + targetId).push({
+            amount: parseFloat(amount),
+            payment_method: method,
+            notes: notes,
+            date: new Date().toISOString()
+          });
+        } catch (err) {
+          console.warn("Firebase payment sync error:", err);
+        }
+      }
+
+      // 2. Update XAMPP MySQL
       if (isServerApiAvailable) {
         try {
-          const res = await fetch(`${XAMPP_API}?action=pay&id=${targetId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+          await fetch(`${XAMPP_API}?action=pay&id=${targetId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               amount: amount,
               payment_method: method,
               notes: notes,
-              date: new Date().toISOString().split('T')[0]
+              date: new Date().toISOString().split("T")[0]
             })
           });
-          const data = await res.json();
-          if (data && data.success && data.record) {
-            const idx = allRecords.findIndex(r => Number(r.id) === targetId);
-            if (idx !== -1) {
-              allRecords[idx] = { ...data.record, id: Number(data.record.id) };
-            }
-          }
         } catch (err) {
-          console.warn('MySQL pay error:', err);
+          console.warn("MySQL pay error:", err);
         }
       }
 
       persistRecords(allRecords);
-      showToast(`✅ ৳${amount} টাকা জমা যোগ হয়েছে ও স্থায়ীভাবে সেভ হয়েছে!`);
+      showToast(`✅ ৳${amount} টাকা জমা যোগ হয়েছে (সবার ফোনে লাইভ আপডেট)!`);
       return true;
     }
 
     async function clearAllRecords() {
-      if (confirm('⚠️ আপনি কি নিশ্চিত যে ডাটাবেজের সকল কাস্টমারের হিসাব স্থায়ীভাবে মুছে ফেলতে চান?')) {
+      if (confirm("⚠️ আপনি কি নিশ্চিত যে ক্লাউড ডাটাবেজের সকল কাস্টমারের হিসাব স্থায়ীভাবে মুছে ফেলতে চান?")) {
+        if (rtdb) {
+          try {
+            await rtdb.ref("records").remove();
+          } catch(e) {}
+        }
         if (isServerApiAvailable) {
           try {
-            await fetch(`${XAMPP_API}?action=clear_all`, { method: 'POST' });
+            await fetch(`${XAMPP_API}?action=clear_all`, { method: "POST" });
           } catch(e) {}
         }
         persistRecords([]);
         closeBackupModal();
-        showToast('🗑️ সকল হিসাব সফলভাবে মুছে ফেলা হয়েছে');
+        showToast("🗑️ সকল হিসাব সফলভাবে মুছে ফেলা হয়েছে");
       }
     }
 
-    // ==========================================================================
-    // UI RENDERING & CALCULATIONS
-    // ==========================================================================
     function refreshUI() {
       updateKPICards();
       renderTable();
@@ -2649,6 +2760,11 @@ Offside Exports থেকে বলছি। আপনার অর্ডার�
           const recordsToRestore = parsed.records || parsed;
           if (Array.isArray(recordsToRestore) && recordsToRestore.length > 0) {
             if (confirm(`আপনি কি ব্যাকআপ ফাইল থেকে ${recordsToRestore.length} টি রেকর্ড ডাটাবেজে ফিরিয়ে আনতে চান?`)) {
+              if (rtdb) {
+                const map = {};
+                recordsToRestore.forEach(r => { if (r && r.id) map[r.id] = r; });
+                rtdb.ref("records").set(map);
+              }
               if (isServerApiAvailable) {
                 try {
                   const res = await fetch('/api/restore', {

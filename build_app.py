@@ -1355,6 +1355,45 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       border: 1px solid rgba(59, 130, 246, 0.3);
     }
 
+
+    /* Expense Tracker Styles */
+    .kpi-card.exp-total::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .kpi-card.exp-month::before { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+    .kpi-card.exp-today::before { background: linear-gradient(90deg, #f43f5e, #fb7185); }
+    .kpi-card.exp-top::before { background: linear-gradient(90deg, #a855f7, #c084fc); }
+
+    .kpi-card.exp-total .kpi-icon-wrap { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .kpi-card.exp-month .kpi-icon-wrap { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+    .kpi-card.exp-today .kpi-icon-wrap { background: rgba(244, 63, 94, 0.15); color: #fb7185; }
+    .kpi-card.exp-top .kpi-icon-wrap { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+
+    /* Category Badges */
+    .cat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .cat-badge.pkg { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .cat-badge.deliv { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .cat-badge.stock { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .cat-badge.ads { background: rgba(226, 19, 110, 0.15); color: #ff529c; border: 1px solid rgba(226, 19, 110, 0.3); }
+    .cat-badge.rent { background: rgba(139, 92, 246, 0.15); color: #a78bfa; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .cat-badge.util { background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); }
+    .cat-badge.staff { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234, 179, 8, 0.3); }
+    .cat-badge.tea { background: rgba(249, 115, 22, 0.15); color: #fb923c; border: 1px solid rgba(249, 115, 22, 0.3); }
+    .cat-badge.other { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    .master-tab-badge.red {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
   </style>
 </head>
 <body>
@@ -1432,6 +1471,11 @@ HTML_CONTENT = r'''<!DOCTYPE html>
           <span>ক্যাশ ও বিকাশ খাতা (Cash & bKash Register)</span>
           <span class="master-tab-badge green" id="nav-badge-cash-net">ক্যাশ: ৳ 0</span>
           <span class="master-tab-badge pink" id="nav-badge-bkash-net">বিকাশ: ৳ 0</span>
+        </button>
+        <button class="master-tab-btn" id="tab-btn-expense" onclick="switchMainTab('expense')">
+          <i class="fa-solid fa-receipt"></i>
+          <span>দৈনিক খরচ খাতা (Expense Tracker)</span>
+          <span class="master-tab-badge red" id="nav-badge-expense-total">খরচ: ৳ 0</span>
         </button>
       </div>
     </section>
@@ -1810,6 +1854,182 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       </section>
 
     </div><!-- End of view-cash-register -->
+
+    <!-- ==========================================================================
+         VIEW 3: EXPENSE TRACKER (দৈনিক ব্যবসা খরচ খাতা)
+         ========================================================================== -->
+    <div id="view-expense-tracker" style="display: none;">
+
+      <!-- 1. Expense KPI Summary Cards -->
+      <section class="summary-section">
+        <div class="kpi-grid">
+
+          <!-- Total Expense KPI -->
+          <div class="kpi-card exp-total">
+            <div class="kpi-header">
+              <span class="kpi-title">সর্বমোট খরচ (Total Expenses)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-receipt"></i></div>
+            </div>
+            <div class="kpi-value" style="color: #f87171;">৳ <span id="exp-total-amount">0</span></div>
+            <div class="kpi-meta">
+              <i class="fa-solid fa-chart-line" style="color: #f87171;"></i>
+              <span>মোট খরচ ভাউচার: <strong id="exp-total-count" style="color: #ffffff;">0</strong> টি</span>
+            </div>
+          </div>
+
+          <!-- This Month Expense KPI -->
+          <div class="kpi-card exp-month">
+            <div class="kpi-header">
+              <span class="kpi-title">চলতি মাসের খরচ (This Month)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-calendar-days"></i></div>
+            </div>
+            <div class="kpi-value" style="color: #fbbf24;">৳ <span id="exp-month-amount">0</span></div>
+            <div class="kpi-meta">
+              <i class="fa-regular fa-calendar-check" style="color: #fbbf24;"></i>
+              <span>বর্তমান চলতি মাসের মোট ব্যয়</span>
+            </div>
+          </div>
+
+          <!-- Today Expense KPI -->
+          <div class="kpi-card exp-today">
+            <div class="kpi-header">
+              <span class="kpi-title">আজকের মোট খরচ (Today)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-fire"></i></div>
+            </div>
+            <div class="kpi-value" style="color: #fb7185;">৳ <span id="exp-today-amount">0</span></div>
+            <div class="kpi-meta">
+              <i class="fa-solid fa-clock-rotate-left" style="color: #fb7185;"></i>
+              <span>আজকের দিনে ব্যয়িত টাকা</span>
+            </div>
+          </div>
+
+          <!-- Top Category KPI -->
+          <div class="kpi-card exp-top">
+            <div class="kpi-header">
+              <span class="kpi-title">শীর্ষ খরচের খাত (Top Category)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-chart-pie"></i></div>
+            </div>
+            <div class="kpi-value" style="font-size: 1.35rem; color: #c084fc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="exp-top-category">নেই</div>
+            <div class="kpi-meta">
+              <i class="fa-solid fa-tag" style="color: #c084fc;"></i>
+              <span>ব্যয়: ৳ <strong id="exp-top-category-amount" style="color: #ffffff;">0</strong></span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 2. Expense Action Toolbar -->
+      <section class="toolbar-section">
+        <div class="toolbar-card">
+
+          <div class="toolbar-top-row">
+            <div class="search-input-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="exp-search-input" class="search-input" placeholder="খরচের বিবরণ, খাত বা ভাউচার নং দিয়ে খুঁজুন..." oninput="filterExpenses()">
+            </div>
+
+            <div class="toolbar-actions">
+              <button class="btn btn-outline btn-sm" onclick="exportExpenseCSV()" title="খরচ খাতা এক্সেল ডাউনলোড">
+                <i class="fa-solid fa-file-excel" style="color: #10b981;"></i>
+                <span>Excel (CSV)</span>
+              </button>
+
+              <button class="btn btn-outline btn-sm" onclick="window.print()" title="খরচ খাতা প্রিন্ট করুন">
+                <i class="fa-solid fa-print"></i>
+                <span>প্রিন্ট / PDF</span>
+              </button>
+
+              <button class="btn btn-sm" onclick="openExpenseModal()" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);" title="নতুন খরচ যোগ করুন">
+                <i class="fa-solid fa-plus"></i>
+                <span>+ নতুন খরচ যোগ করুন</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Expense Category & Source Filter Tabs -->
+          <div class="filter-tabs-row">
+            <div class="status-filter-pills">
+              <button class="filter-pill active" onclick="setExpenseFilter('all', this)">
+                <i class="fa-solid fa-list-ul"></i> সকল খরচ <span class="count-tag" id="exp-filter-count-all">0</span>
+              </button>
+              <button class="filter-pill" onclick="setExpenseFilter('প্যাকেজিং', this)" style="border-color: rgba(59, 130, 246, 0.4);">
+                <i class="fa-solid fa-box"></i> প্যাকেজিং
+              </button>
+              <button class="filter-pill" onclick="setExpenseFilter('ডেলিভারি', this)" style="border-color: rgba(16, 185, 129, 0.4);">
+                <i class="fa-solid fa-truck-fast"></i> ডেলিভারি
+              </button>
+              <button class="filter-pill" onclick="setExpenseFilter('মাল', this)" style="border-color: rgba(245, 158, 11, 0.4);">
+                <i class="fa-solid fa-bag-shopping"></i> মাল ক্রয়
+              </button>
+              <button class="filter-pill" onclick="setExpenseFilter('বুস্টিং', this)" style="border-color: rgba(226, 19, 110, 0.4);">
+                <i class="fa-solid fa-bullhorn"></i> বুস্টিং / বিজ্ঞাপন
+              </button>
+              <button class="filter-pill" onclick="setExpenseFilter('Cash', this)">
+                <i class="fa-solid fa-money-bill-wave" style="color: #34d399;"></i> ক্যাশ থেকে
+              </button>
+              <button class="filter-pill" onclick="setExpenseFilter('bKash', this)">
+                <i class="fa-solid fa-mobile-screen" style="color: #ff529c;"></i> বিকাশ থেকে
+              </button>
+            </div>
+
+            <div class="filter-dropdowns">
+              <select id="exp-sort-select" class="select-input" onchange="filterExpenses()">
+                <option value="date-desc">তারিখ: নতুন আগে</option>
+                <option value="date-asc">তারিখ: পুরাতন আগে</option>
+                <option value="amount-desc">খরচের অংক: বেশি আগে</option>
+                <option value="amount-asc">খরচের অংক: কম আগে</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 3. Expense Ledger Table -->
+      <section class="table-section">
+        <div class="table-card">
+          <div class="table-header-meta">
+            <div class="table-title">
+              <i class="fa-solid fa-file-invoice-dollar" style="color: #f87171;"></i>
+              <span>অফসাইড এক্সপোর্টস - দৈনিক ব্যবসা খরচ খাতা (Expense Ledger)</span>
+            </div>
+            <div class="table-sub-hint">
+              <i class="fa-solid fa-shield-check" style="color: #10b981;"></i>
+              <span>ক্লাউড লাইভ সিঙ্ক: সকল খরচের হিসাব সুরক্ষিতভাবে সংরক্ষিত</span>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="ledger-table" id="expense-ledger-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;" class="text-center">#</th>
+                  <th style="width: 120px;">তারিখ</th>
+                  <th style="width: 170px;">খরচের খাত</th>
+                  <th>খরচের বিবরণ (কী বাবদ খরচ)</th>
+                  <th style="width: 130px;">পরিশোধ মাধ্যম</th>
+                  <th style="width: 130px;">ভাউচার / মেমো</th>
+                  <th style="width: 130px;" class="text-right">পরিমাণ (BDT)</th>
+                  <th style="width: 90px;" class="text-center">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="expense-table-body">
+                <!-- Rows injected dynamically via renderExpenseTable() -->
+              </tbody>
+            </table>
+          </div>
+
+          <div id="expense-empty-placeholder" class="empty-state" style="display: none;">
+            <i class="fa-solid fa-receipt"></i>
+            <h3>কোনো খরচের হিসাব পাওয়া যায়নি</h3>
+            <p>নতুন খরচের এন্ট্রি দিতে উপরে "+ নতুন খরচ যোগ করুন" বাটনে ক্লিক করুন।</p>
+          </div>
+
+        </div>
+      </section>
+
+    </div><!-- End of view-expense-tracker -->
 
   </main>
 
@@ -2224,6 +2444,97 @@ HTML_CONTENT = r'''<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- ==========================================================================
+       MODAL: EXPENSE ENTRY (ব্যবসা খরচ এন্ট্রি)
+       ========================================================================== -->
+  <div class="modal-overlay" id="expense-entry-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="expense-modal-title">
+          <i class="fa-solid fa-receipt" style="color: #f87171;"></i>
+          <span>দৈনিক খরচ হিসাব এন্ট্রি (Add Expense)</span>
+        </h3>
+        <button class="modal-close-btn" onclick="closeExpenseModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="expense-entry-form" onsubmit="handleExpenseFormSubmit(event)">
+          <input type="hidden" id="exp-form-id">
+
+          <div class="form-grid">
+
+            <!-- Category -->
+            <div class="form-group full-width">
+              <label class="form-label">খরচের খাত / ক্যাটাগরি (Category) <span class="req">*</span></label>
+              <select id="exp-form-category" class="form-control" required>
+                <option value="📦 প্যাকেজিং ও পলি">📦 প্যাকেজিং ও পলি ব্যাগ</option>
+                <option value="🚚 ডেলিভারি চার্জ">🚚 ডেলিভারি ও কুরিয়ার চার্জ</option>
+                <option value="🛍️ মাল / কাপড় ক্রয়">🛍️ মাল / কাপড় / ফেব্রিক ক্রয়</option>
+                <option value="📢 ফেসবুক পেজ বুস্টিং">📢 ফেসবুক পেজ বুস্টিং ও বিজ্ঞাপন</option>
+                <option value="🏢 দোকান / অফিস ভাড়া">🏢 দোকান / অফিস / গোডাউন ভাড়া</option>
+                <option value="💡 বিদ্যুৎ ও ইন্টারনেট">💡 বিদ্যুৎ, গ্যাস ও ওয়াইফাই বিল</option>
+                <option value="👥 স্টাফ বেতন ও মজুরি">👥 স্টাফ বেতন ও মজুরি</option>
+                <option value="☕ চা-নাস্তা ও আপ্যায়ন">☕ চা-নাস্তা ও আপ্যায়ন</option>
+                <option value="🏷️ ট্যাগ ও প্রিন্টিং">🏷️ ট্যাগ, লেবেল ও প্রিন্টিং</option>
+                <option value="📝 অন্যান্য খরচ">📝 অন্যান্য প্রয়োজনীয় খরচ</option>
+              </select>
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+              <label class="form-label">খরচের পরিমাণ (Amount BDT) <span class="req">*</span></label>
+              <input type="number" step="any" min="1" id="exp-form-amount" class="form-control" placeholder="0.00" required style="font-size: 1.15rem; font-weight: 700; color: #f87171;">
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+              <label class="form-label">তারিখ (Date) <span class="req">*</span></label>
+              <input type="date" id="exp-form-date" class="form-control" required>
+            </div>
+
+            <!-- Paid From Account -->
+            <div class="form-group">
+              <label class="form-label">পরিশোধ মাধ্যম (Paid From) <span class="req">*</span></label>
+              <select id="exp-form-account" class="form-control" required>
+                <option value="Cash">💵 Cash (নগদ ক্যাশ থেকে)</option>
+                <option value="bKash">📱 bKash (01834093932 থেকে)</option>
+                <option value="Rocket">🚀 Rocket (018927170930 থেকে)</option>
+                <option value="Bank">🏦 Bank / Other (ব্যাংক থেকে)</option>
+              </select>
+            </div>
+
+            <!-- Voucher / Memo No -->
+            <div class="form-group">
+              <label class="form-label">ভাউচার / মেমো নং (ঐচ্ছিক)</label>
+              <input type="text" id="exp-form-voucher" class="form-control" placeholder="যেমন: VOUCH-01, MEMO-99">
+            </div>
+
+            <!-- Description -->
+            <div class="form-group full-width">
+              <label class="form-label">কী বাবদ খরচ হয়েছে (Description / Details) <span class="req">*</span></label>
+              <input type="text" id="exp-form-desc" class="form-control" placeholder="যেমন: ২০০০ পিস পলি ব্যাগ ক্রয়, রেডেক্স কুরিয়ার চার্জ, ১০ ডলার বুস্টিং বিল..." required>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group full-width">
+              <label class="form-label">অতিরিক্ত বিবরণ / নোটস</label>
+              <textarea id="exp-form-notes" class="form-control" rows="2" placeholder="অন্য কোনো মন্তব্য বা ট্রানজেকশন আইডি থাকলে লিখুন..."></textarea>
+            </div>
+
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeExpenseModal()">বাতিল</button>
+            <button type="submit" class="btn" id="exp-save-btn" style="background: linear-gradient(135deg, #ef4444, #dc2626); color: #ffffff;">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>খরচ সেভ করুন</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toast-box"></div>
 
@@ -2352,21 +2663,25 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       currentMainTab = tab;
       const btnCust = document.getElementById('tab-btn-customer');
       const btnCash = document.getElementById('tab-btn-cashbook');
+      const btnExp = document.getElementById('tab-btn-expense');
       const viewCust = document.getElementById('view-customer-ledger');
       const viewCash = document.getElementById('view-cash-register');
+      const viewExp = document.getElementById('view-expense-tracker');
+
+      btnCust.classList.toggle('active', tab === 'customer');
+      btnCash.classList.toggle('active', tab === 'cashbook');
+      if (btnExp) btnExp.classList.toggle('active', tab === 'expense');
+
+      viewCust.style.display = (tab === 'customer') ? 'block' : 'none';
+      viewCash.style.display = (tab === 'cashbook') ? 'block' : 'none';
+      if (viewExp) viewExp.style.display = (tab === 'expense') ? 'block' : 'none';
 
       if (tab === 'customer') {
-        btnCust.classList.add('active');
-        btnCash.classList.remove('active');
-        viewCust.style.display = 'block';
-        viewCash.style.display = 'none';
         refreshUI();
-      } else {
-        btnCash.classList.add('active');
-        btnCust.classList.remove('active');
-        viewCust.style.display = 'none';
-        viewCash.style.display = 'block';
+      } else if (tab === 'cashbook') {
         updateCashbookUI();
+      } else if (tab === 'expense') {
+        updateExpenseUI();
       }
     }
 
@@ -2798,6 +3113,379 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       a.click();
       document.body.removeChild(a);
       showToast('📥 ক্যাশ ও বিকাশ খাতা Excel (CSV) ডাউনলোড সম্পন্ন হয়েছে');
+    }
+
+
+    // ==========================================================================
+    // EXPENSE TRACKER STATE & METHODS
+    // ==========================================================================
+    let allExpenseRecords = [];
+    let currentExpenseFilter = 'all';
+    const EXPENSE_STORAGE_KEY = 'offside_expense_records_v1';
+
+    function saveExpenseToLocalStorage(records) {
+      try {
+        localStorage.setItem(EXPENSE_STORAGE_KEY, JSON.stringify(records));
+      } catch (err) {
+        console.error('Expense LocalStorage write failed:', err);
+      }
+    }
+
+    function loadExpenseFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(EXPENSE_STORAGE_KEY);
+        if (raw !== null) {
+          return JSON.parse(raw);
+        }
+      } catch (err) {
+        console.error('Expense LocalStorage read failed:', err);
+      }
+      return [];
+    }
+
+    function initExpenseRealtime() {
+      allExpenseRecords = loadExpenseFromLocalStorage() || [];
+      updateExpenseUI();
+
+      if (rtdb) {
+        rtdb.ref('expenses').on('value', (snapshot) => {
+          const val = snapshot.val();
+          let list = [];
+          if (val) {
+            if (Array.isArray(val)) {
+              list = val.filter(item => item != null);
+            } else if (typeof val === 'object') {
+              list = Object.values(val);
+            }
+            list.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+          }
+          allExpenseRecords = list;
+          saveExpenseToLocalStorage(allExpenseRecords);
+          updateExpenseUI();
+        }, (err) => {
+          console.warn('Firebase expense sync error:', err);
+        });
+      }
+    }
+
+    function updateExpenseUI() {
+      let totalExp = 0;
+      let todayExp = 0;
+      let monthExp = 0;
+      const catMap = {};
+
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+      const curMonth = todayStr.substring(0, 7); // YYYY-MM
+
+      allExpenseRecords.forEach(r => {
+        const amt = parseFloat(r.amount || 0);
+        totalExp += amt;
+
+        if (r.date === todayStr) {
+          todayExp += amt;
+        }
+
+        if (r.date && r.date.startsWith(curMonth)) {
+          monthExp += amt;
+        }
+
+        const cat = r.category || '📝 অন্যান্য খরচ';
+        catMap[cat] = (catMap[cat] || 0) + amt;
+      });
+
+      // Find top category
+      let topCat = 'নেই';
+      let topCatAmt = 0;
+      for (const [c, a] of Object.entries(catMap)) {
+        if (a > topCatAmt) {
+          topCatAmt = a;
+          topCat = c;
+        }
+      }
+
+      // Update Expense KPIs
+      const elTotalAmt = document.getElementById('exp-total-amount');
+      if (elTotalAmt) elTotalAmt.textContent = formatBDT(totalExp);
+      const elTotalCount = document.getElementById('exp-total-count');
+      if (elTotalCount) elTotalCount.textContent = allExpenseRecords.length;
+
+      const elMonthAmt = document.getElementById('exp-month-amount');
+      if (elMonthAmt) elMonthAmt.textContent = formatBDT(monthExp);
+
+      const elTodayAmt = document.getElementById('exp-today-amount');
+      if (elTodayAmt) elTodayAmt.textContent = formatBDT(todayExp);
+
+      const elTopCat = document.getElementById('exp-top-category');
+      if (elTopCat) elTopCat.textContent = topCat;
+      const elTopCatAmt = document.getElementById('exp-top-category-amount');
+      if (elTopCatAmt) elTopCatAmt.textContent = formatBDT(topCatAmt);
+
+      // Update Master Nav badge
+      const elNavExp = document.getElementById('nav-badge-expense-total');
+      if (elNavExp) elNavExp.textContent = `খরচ: ৳ ${formatBDT(totalExp)}`;
+
+      renderExpenseTable();
+    }
+
+    function setExpenseFilter(catFilter, btnElem) {
+      currentExpenseFilter = catFilter;
+      document.querySelectorAll('#view-expense-tracker .filter-pill').forEach(b => b.classList.remove('active'));
+      if (btnElem) btnElem.classList.add('active');
+      renderExpenseTable();
+    }
+
+    function filterExpenses() {
+      renderExpenseTable();
+    }
+
+    function getCategoryBadge(cat) {
+      if (!cat) return '<span class="cat-badge other">📝 অন্যান্য</span>';
+      if (cat.includes('প্যাকেজিং')) return `<span class="cat-badge pkg">${escapeHtml(cat)}</span>`;
+      if (cat.includes('ডেলিভারি')) return `<span class="cat-badge deliv">${escapeHtml(cat)}</span>`;
+      if (cat.includes('মাল') || cat.includes('কাপড়')) return `<span class="cat-badge stock">${escapeHtml(cat)}</span>`;
+      if (cat.includes('বুস্টিং')) return `<span class="cat-badge ads">${escapeHtml(cat)}</span>`;
+      if (cat.includes('ভাড়া')) return `<span class="cat-badge rent">${escapeHtml(cat)}</span>`;
+      if (cat.includes('বিদ্যুৎ') || cat.includes('ইন্টারনেট')) return `<span class="cat-badge util">${escapeHtml(cat)}</span>`;
+      if (cat.includes('বেতন')) return `<span class="cat-badge staff">${escapeHtml(cat)}</span>`;
+      if (cat.includes('নাস্তা')) return `<span class="cat-badge tea">${escapeHtml(cat)}</span>`;
+      return `<span class="cat-badge other">${escapeHtml(cat)}</span>`;
+    }
+
+    function renderExpenseTable() {
+      const tbody = document.getElementById('expense-table-body');
+      const emptyState = document.getElementById('expense-empty-placeholder');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const query = (document.getElementById('exp-search-input')?.value || '').trim().toLowerCase();
+      const sortVal = document.getElementById('exp-sort-select')?.value || 'date-desc';
+
+      const elFilterAll = document.getElementById('exp-filter-count-all');
+      if (elFilterAll) elFilterAll.textContent = allExpenseRecords.length;
+
+      let filtered = allExpenseRecords.filter(r => {
+        const cat = r.category || '';
+        const acc = r.account || 'Cash';
+
+        if (currentExpenseFilter !== 'all') {
+          if (currentExpenseFilter === 'Cash' && !acc.toLowerCase().includes('cash')) return false;
+          else if (currentExpenseFilter === 'bKash' && !acc.toLowerCase().includes('bkash')) return false;
+          else if (!currentExpenseFilter.includes('Cash') && !currentExpenseFilter.includes('bKash')) {
+            if (!cat.toLowerCase().includes(currentExpenseFilter.toLowerCase())) return false;
+          }
+        }
+
+        if (query) {
+          const mDesc = (r.description || '').toLowerCase().includes(query);
+          const mCat = cat.toLowerCase().includes(query);
+          const mVoucher = (r.voucher || '').toLowerCase().includes(query);
+          const mNotes = (r.notes || '').toLowerCase().includes(query);
+          const mAcc = acc.toLowerCase().includes(query);
+          if (!mDesc && !mCat && !mVoucher && !mNotes && !mAcc) return false;
+        }
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortVal === 'date-desc') return new Date(b.date || 0) - new Date(a.date || 0);
+        if (sortVal === 'date-asc') return new Date(a.date || 0) - new Date(b.date || 0);
+        if (sortVal === 'amount-desc') return parseFloat(b.amount || 0) - parseFloat(a.amount || 0);
+        if (sortVal === 'amount-asc') return parseFloat(a.amount || 0) - parseFloat(b.amount || 0);
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+      }
+      if (emptyState) emptyState.style.display = 'none';
+
+      filtered.forEach((r, idx) => {
+        const amt = parseFloat(r.amount || 0);
+        const acc = r.account || 'Cash';
+        const accLower = acc.toLowerCase();
+
+        let accBadge = `<span class="account-badge cash"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(acc)}</span>`;
+        if (accLower.includes('bkash')) {
+          accBadge = `<span class="account-badge bkash"><i class="fa-solid fa-mobile-screen"></i> ${escapeHtml(acc)}</span>`;
+        } else if (accLower.includes('rocket')) {
+          accBadge = `<span class="account-badge rocket"><i class="fa-solid fa-bolt"></i> ${escapeHtml(acc)}</span>`;
+        } else if (accLower.includes('bank')) {
+          accBadge = `<span class="account-badge bank"><i class="fa-solid fa-building-columns"></i> ${escapeHtml(acc)}</span>`;
+        }
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-center" style="color: var(--text-dim); font-size: 0.78rem;">${idx + 1}</td>
+          <td style="white-space: nowrap; font-size: 0.82rem; color: #cbd5e1;">
+            <i class="fa-regular fa-calendar" style="color: var(--text-dim); margin-right: 4px;"></i>
+            ${formatDateDisplay(r.date)}
+          </td>
+          <td>${getCategoryBadge(r.category)}</td>
+          <td>
+            <div style="font-weight: 600; color: #f1f5f9;">${escapeHtml(r.description || '-')}</div>
+            ${r.notes ? `<div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(r.notes)}</div>` : ''}
+          </td>
+          <td>${accBadge}</td>
+          <td style="font-family: 'Outfit', sans-serif; font-size: 0.82rem; color: #94a3b8;">
+            ${r.voucher ? escapeHtml(r.voucher) : '-'}
+          </td>
+          <td class="text-right amount-val" style="color: #f87171; font-weight: 700;">
+            ৳ ${formatBDT(amt)}
+          </td>
+          <td class="text-center">
+            <div class="row-actions" style="justify-content: center;">
+              <button class="action-btn" onclick="openExpenseEditModal(${r.id})" title="সম্পাদনা">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="action-btn del" onclick="deleteExpenseRecord(${r.id})" title="মুছে ফেলুন">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openExpenseModal() {
+      document.getElementById('expense-entry-form').reset();
+      document.getElementById('exp-form-id').value = '';
+      document.getElementById('expense-modal-title').innerHTML = `
+        <i class="fa-solid fa-receipt" style="color: #f87171;"></i>
+        <span>দৈনিক খরচ হিসাব এন্ট্রি (Add Expense)</span>
+      `;
+      document.getElementById('exp-form-date').value = new Date().toISOString().split('T')[0];
+      document.getElementById('expense-entry-modal').classList.add('active');
+    }
+
+    function closeExpenseModal() {
+      document.getElementById('expense-entry-modal').classList.remove('active');
+    }
+
+    function openExpenseEditModal(id) {
+      const rec = allExpenseRecords.find(r => Number(r.id) === Number(id));
+      if (!rec) return;
+
+      document.getElementById('exp-form-id').value = rec.id;
+      document.getElementById('exp-form-category').value = rec.category || '📝 অন্যান্য খরচ';
+      document.getElementById('exp-form-amount').value = rec.amount || 0;
+      document.getElementById('exp-form-date').value = rec.date || new Date().toISOString().split('T')[0];
+      document.getElementById('exp-form-account').value = rec.account || 'Cash';
+      document.getElementById('exp-form-voucher').value = rec.voucher || '';
+      document.getElementById('exp-form-desc').value = rec.description || '';
+      document.getElementById('exp-form-notes').value = rec.notes || '';
+
+      document.getElementById('expense-modal-title').innerHTML = `
+        <i class="fa-solid fa-pen-to-square" style="color: #f87171;"></i>
+        <span>খরচ হিসাব সম্পাদনা (Edit Expense)</span>
+      `;
+
+      document.getElementById('expense-entry-modal').classList.add('active');
+    }
+
+    async function handleExpenseFormSubmit(e) {
+      e.preventDefault();
+      const idVal = document.getElementById('exp-form-id').value;
+      const category = document.getElementById('exp-form-category').value;
+      const amount = parseFloat(document.getElementById('exp-form-amount').value || 0);
+      const date = document.getElementById('exp-form-date').value;
+      const account = document.getElementById('exp-form-account').value;
+      const voucher = document.getElementById('exp-form-voucher').value.trim();
+      const description = document.getElementById('exp-form-desc').value.trim();
+      const notes = document.getElementById('exp-form-notes').value.trim();
+
+      const recordObj = {
+        id: idVal ? Number(idVal) : Date.now(),
+        category,
+        amount,
+        date,
+        account,
+        voucher,
+        description,
+        notes,
+        created_at: new Date().toISOString()
+      };
+
+      await saveExpenseRecord(recordObj);
+      closeExpenseModal();
+    }
+
+    async function saveExpenseRecord(data) {
+      if (!data.id) data.id = Date.now();
+      data.amount = parseFloat(data.amount || 0);
+
+      // 1. Firebase Cloud Sync
+      if (rtdb) {
+        try {
+          await rtdb.ref('expenses/' + data.id).set(data);
+        } catch (err) {
+          console.warn('Firebase expense save error:', err);
+        }
+      }
+
+      // 2. Local memory update
+      const idx = allExpenseRecords.findIndex(r => Number(r.id) === Number(data.id));
+      if (idx !== -1) {
+        allExpenseRecords[idx] = data;
+      } else {
+        allExpenseRecords.unshift(data);
+      }
+      saveExpenseToLocalStorage(allExpenseRecords);
+      updateExpenseUI();
+
+      showToast(`✅ ৳${formatBDT(data.amount)} খরচের হিসাব (${data.category}) সফলভাবে সেভ হয়েছে!`);
+      return true;
+    }
+
+    async function deleteExpenseRecord(id) {
+      const targetId = Number(id);
+      const rec = allExpenseRecords.find(r => Number(r.id) === targetId);
+      if (!rec) return;
+
+      const desc = rec.description ? `"${rec.description}"` : `${rec.category}-এর`;
+      if (!confirm(`আপনি কি নিশ্চিত যে ${desc} ৳${formatBDT(rec.amount)} খরচের হিসাবটি মুছে ফেলতে চান?`)) {
+        return;
+      }
+
+      // 1. Delete from Firebase
+      if (rtdb) {
+        try {
+          await rtdb.ref('expenses/' + targetId).remove();
+        } catch (err) {
+          console.warn('Firebase expense delete error:', err);
+        }
+      }
+
+      allExpenseRecords = allExpenseRecords.filter(r => Number(r.id) !== targetId);
+      saveExpenseToLocalStorage(allExpenseRecords);
+      updateExpenseUI();
+      showToast('🗑️ খরচের হিসাবটি মুছে ফেলা হয়েছে');
+    }
+
+    function exportExpenseCSV() {
+      if (allExpenseRecords.length === 0) {
+        alert('এক্সপোর্ট করার মতো কোনো খরচের হিসাব পাওয়া যায়নি।');
+        return;
+      }
+
+      let csv = '﻿SL,Date,Category,Description,Paid Account,Voucher / Memo,Amount (BDT),Notes\r\n';
+
+      allExpenseRecords.forEach((r, idx) => {
+        csv += `${idx + 1},"${r.date || ''}","${(r.category || '').replace(/"/g, '""')}","${(r.description || '').replace(/"/g, '""')}","${r.account || ''}","${(r.voucher || '').replace(/"/g, '""')}",${r.amount || 0},"${(r.notes || '').replace(/"/g, '""')}"\r\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Offside_Exports_Expenses_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('📥 খরচ খাতা Excel (CSV) ডাউনলোড সম্পন্ন হয়েছে');
     }
 
     // Master persist function: updates allRecords, saves to LocalStorage, syncs to IndexedDB
@@ -3752,6 +4440,7 @@ Offside Exports থেকে বলছি। আপনার অর্ডার�
     window.addEventListener('DOMContentLoaded', () => {
       initStorageEngine();
       initCashbookRealtime();
+      initExpenseRealtime();
     });
   </script>
 </body>

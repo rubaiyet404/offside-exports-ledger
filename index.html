@@ -1380,6 +1380,102 @@
       border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
+
+    /* Partner Fund Styles */
+    .kpi-card.partner-dep::before { background: linear-gradient(90deg, #8b5cf6, #a78bfa); }
+    .kpi-card.partner-spent::before { background: linear-gradient(90deg, #ef4444, #f87171); }
+    .kpi-card.partner-bal::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .kpi-card.partner-status::before { background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+
+    .kpi-card.partner-dep .kpi-icon-wrap { background: rgba(139, 92, 246, 0.15); color: #a78bfa; }
+    .kpi-card.partner-spent .kpi-icon-wrap { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+    .kpi-card.partner-bal .kpi-icon-wrap { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .kpi-card.partner-status .kpi-icon-wrap { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
+
+    /* Partner Member Grid */
+    .partner-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .partner-member-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+      position: relative;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .partner-member-card:hover {
+      border-color: var(--blue-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+    }
+    .partner-member-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .partner-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
+      border: 2px solid var(--blue-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      color: #60a5fa;
+    }
+    .partner-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f1f5f9;
+    }
+    .partner-role {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .partner-stats {
+      margin-bottom: 12px;
+    }
+    .partner-stat-val {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #34d399;
+    }
+    .partner-stat-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .partner-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .partner-badge.ifty { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .partner-badge.ratul { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .partner-badge.hasib { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .partner-badge.tanjir { background: rgba(226, 19, 110, 0.15); color: #ff529c; border: 1px solid rgba(226, 19, 110, 0.3); }
+    .partner-badge.fund-expense { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .master-tab-badge.purple {
+      background: rgba(139, 92, 246, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
   </style>
 </head>
 <body>
@@ -1462,6 +1558,11 @@
           <i class="fa-solid fa-receipt"></i>
           <span>দৈনিক খরচ খাতা (Expense Tracker)</span>
           <span class="master-tab-badge red" id="nav-badge-expense-total">খরচ: ৳ 0</span>
+        </button>
+        <button class="master-tab-btn" id="tab-btn-partner" onclick="switchMainTab('partner')">
+          <i class="fa-solid fa-handshake"></i>
+          <span>৪ পার্টনারের শুক্রবারের তহবিল (Partners Fund)</span>
+          <span class="master-tab-badge purple" id="nav-badge-partner-balance">ফান্ড: ৳ 0</span>
         </button>
       </div>
     </section>
@@ -2017,6 +2118,283 @@
 
     </div><!-- End of view-expense-tracker -->
 
+    <!-- ==========================================================================
+         VIEW 4: PARTNER FUND (৪ পার্টনারের শুক্রবারের জমা ও খরচ তহবিল)
+         ========================================================================== -->
+    <div id="view-partner-fund" style="display: none;">
+
+      <!-- 1. Partner Fund KPI Summary Cards -->
+      <section class="summary-section">
+        <div class="kpi-grid">
+
+          <!-- Total Fund Collected -->
+          <div class="kpi-card partner-dep">
+            <div class="kpi-header">
+              <span class="kpi-title">মোট জমা তহবিল (Total Deposits)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-piggy-bank"></i></div>
+            </div>
+            <div class="kpi-value" style="color: #c084fc;">৳ <span id="partner-kpi-total-deposit">0</span></div>
+            <div class="kpi-meta">
+              <i class="fa-solid fa-coins" style="color: #c084fc;"></i>
+              <span>প্রতি শুক্রবার ২৫০৳ করে কিস্তি</span>
+            </div>
+          </div>
+
+          <!-- Total Spent from Fund -->
+          <div class="kpi-card partner-spent">
+            <div class="kpi-header">
+              <span class="kpi-title">ফান্ড থেকে মোট খরচ (Total Spent)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-money-bill-transfer"></i></div>
+            </div>
+            <div class="kpi-value" style="color: #f87171;">৳ <span id="partner-kpi-total-spent">0</span></div>
+            <div class="kpi-meta">
+              <i class="fa-solid fa-arrow-trend-down" style="color: #f87171;"></i>
+              <span>পার্টনার ফান্ড থেকে ব্যয়িত টাকা</span>
+            </div>
+          </div>
+
+          <!-- Available Net Fund Balance -->
+          <div class="kpi-card partner-bal">
+            <div class="kpi-header">
+              <span class="kpi-title">বর্তমান ফান্ড ব্যালেন্স (Net Balance)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-vault"></i></div>
+            </div>
+            <div class="kpi-value" style="color: #34d399;">৳ <span id="partner-kpi-net-balance">0</span></div>
+            <div class="kpi-meta">
+              <i class="fa-solid fa-shield-halved" style="color: #34d399;"></i>
+              <span>মোট জমা - মোট খরচ = অবশিষ্ট ফান্ড</span>
+            </div>
+          </div>
+
+          <!-- Friday Collection Status -->
+          <div class="kpi-card partner-status">
+            <div class="kpi-header">
+              <span class="kpi-title">এই সপ্তাহের স্থিতি (Friday Status)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-calendar-check"></i></div>
+            </div>
+            <div class="kpi-value"><span id="partner-kpi-friday-status">0/4</span> <span style="font-size: 1rem; color: var(--text-muted); font-weight: normal;">জন দিয়েছেন</span></div>
+            <div class="kpi-meta">
+              <i class="fa-regular fa-clock" style="color: #60a5fa;"></i>
+              <span id="partner-kpi-friday-date">বর্তমান সপ্তাহ</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 2. The 4 Partners Individual Member Cards -->
+      <section style="margin-bottom: 24px;">
+        <div class="partner-grid">
+
+          <!-- 1. Ifty -->
+          <div class="partner-member-card">
+            <div>
+              <div class="partner-member-top">
+                <div class="partner-avatar" style="border-color: #60a5fa; color: #60a5fa;">
+                  <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div>
+                  <div class="partner-name">Ifty (ইফতি)</div>
+                  <div class="partner-role">Co-Founder / Partner</div>
+                </div>
+              </div>
+              <div class="partner-stats">
+                <div class="partner-stat-val" id="partner-stat-ifty-total">৳ 0</div>
+                <div class="partner-stat-sub">মোট জমা দিয়েছেন | শেষ জমা: <strong id="partner-stat-ifty-last">-</strong></div>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Ifty')" style="width: 100%; border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;">
+              <i class="fa-solid fa-plus"></i> ইফতির ২৫০৳ জমা দিন
+            </button>
+          </div>
+
+          <!-- 2. Ratul -->
+          <div class="partner-member-card">
+            <div>
+              <div class="partner-member-top">
+                <div class="partner-avatar" style="border-color: #34d399; color: #34d399;">
+                  <i class="fa-solid fa-user-astronaut"></i>
+                </div>
+                <div>
+                  <div class="partner-name">Ratul (রাতুল)</div>
+                  <div class="partner-role">Co-Founder / Partner</div>
+                </div>
+              </div>
+              <div class="partner-stats">
+                <div class="partner-stat-val" id="partner-stat-ratul-total">৳ 0</div>
+                <div class="partner-stat-sub">মোট জমা দিয়েছেন | শেষ জমা: <strong id="partner-stat-ratul-last">-</strong></div>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Ratul')" style="width: 100%; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+              <i class="fa-solid fa-plus"></i> রাতুলের ২৫০৳ জমা দিন
+            </button>
+          </div>
+
+          <!-- 3. Hasib -->
+          <div class="partner-member-card">
+            <div>
+              <div class="partner-member-top">
+                <div class="partner-avatar" style="border-color: #fbbf24; color: #fbbf24;">
+                  <i class="fa-solid fa-user-ninja"></i>
+                </div>
+                <div>
+                  <div class="partner-name">Hasib (হাসিব)</div>
+                  <div class="partner-role">Co-Founder / Partner</div>
+                </div>
+              </div>
+              <div class="partner-stats">
+                <div class="partner-stat-val" id="partner-stat-hasib-total">৳ 0</div>
+                <div class="partner-stat-sub">মোট জমা দিয়েছেন | শেষ জমা: <strong id="partner-stat-hasib-last">-</strong></div>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Hasib')" style="width: 100%; border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+              <i class="fa-solid fa-plus"></i> হাসিবের ২৫০৳ জমা দিন
+            </button>
+          </div>
+
+          <!-- 4. Tanjir -->
+          <div class="partner-member-card">
+            <div>
+              <div class="partner-member-top">
+                <div class="partner-avatar" style="border-color: #ff529c; color: #ff529c;">
+                  <i class="fa-solid fa-user-gear"></i>
+                </div>
+                <div>
+                  <div class="partner-name">Tanjir (তানজির)</div>
+                  <div class="partner-role">Co-Founder / Partner</div>
+                </div>
+              </div>
+              <div class="partner-stats">
+                <div class="partner-stat-val" id="partner-stat-tanjir-total">৳ 0</div>
+                <div class="partner-stat-sub">মোট জমা দিয়েছেন | শেষ জমা: <strong id="partner-stat-tanjir-last">-</strong></div>
+              </div>
+            </div>
+            <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Tanjir')" style="width: 100%; border-color: rgba(226, 19, 110, 0.4); color: #ff529c;">
+              <i class="fa-solid fa-plus"></i> তানজিরের ২৫০৳ জমা দিন
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 3. Partner Fund Toolbar -->
+      <section class="toolbar-section">
+        <div class="toolbar-card">
+
+          <div class="toolbar-top-row">
+            <div class="search-input-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="partner-search-input" class="search-input" placeholder="পার্টনারের নাম, বিবরণ, TrxID দিয়ে খুঁজুন..." oninput="filterPartnerFund()">
+            </div>
+
+            <div class="toolbar-actions">
+              <button class="btn btn-outline btn-sm" onclick="exportPartnerFundCSV()" title="তহবিল খাতা এক্সেল ডাউনলোড">
+                <i class="fa-solid fa-file-excel" style="color: #10b981;"></i>
+                <span>Excel (CSV)</span>
+              </button>
+
+              <button class="btn btn-outline btn-sm" onclick="window.print()" title="তহবিল হিসাব প্রিন্ট করুন">
+                <i class="fa-solid fa-print"></i>
+                <span>প্রিন্ট / PDF</span>
+              </button>
+
+              <button class="btn btn-sm" onclick="openPartnerModal('deposit')" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: #ffffff; box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);" title="শুক্রবারের ২৫০৳ জমা এন্ট্রি">
+                <i class="fa-solid fa-circle-down"></i>
+                <span>+ শুক্রবারের জমা এন্ট্রি</span>
+              </button>
+
+              <button class="btn btn-outline btn-sm" onclick="openPartnerModal('expense')" style="border-color: rgba(239, 68, 68, 0.5); color: #f87171;" title="পার্টনার ফান্ড থেকে খরচ">
+                <i class="fa-solid fa-circle-up"></i>
+                <span>- ফান্ড থেকে খরচ</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Partner Filter Pills -->
+          <div class="filter-tabs-row">
+            <div class="status-filter-pills">
+              <button class="filter-pill active" onclick="setPartnerFilter('all', this)">
+                <i class="fa-solid fa-list-ul"></i> সকল লেনদেন <span class="count-tag" id="partner-filter-count-all">0</span>
+              </button>
+              <button class="filter-pill" onclick="setPartnerFilter('Ifty', this)" style="border-color: rgba(59, 130, 246, 0.4);">
+                <i class="fa-solid fa-user-tie" style="color: #60a5fa;"></i> Ifte (ইফতি)
+              </button>
+              <button class="filter-pill" onclick="setPartnerFilter('Ratul', this)" style="border-color: rgba(16, 185, 129, 0.4);">
+                <i class="fa-solid fa-user-astronaut" style="color: #34d399;"></i> Ratul (রাতুল)
+              </button>
+              <button class="filter-pill" onclick="setPartnerFilter('Hasib', this)" style="border-color: rgba(245, 158, 11, 0.4);">
+                <i class="fa-solid fa-user-ninja" style="color: #fbbf24;"></i> Hasib (হাসিব)
+              </button>
+              <button class="filter-pill" onclick="setPartnerFilter('Tanjir', this)" style="border-color: rgba(226, 19, 110, 0.4);">
+                <i class="fa-solid fa-user-gear" style="color: #ff529c;"></i> Tanjir (তানজির)
+              </button>
+              <button class="filter-pill paid-pill" onclick="setPartnerFilter('deposit', this)">
+                <i class="fa-solid fa-circle-down"></i> শুধু জমা
+              </button>
+              <button class="filter-pill due-pill" onclick="setPartnerFilter('expense', this)">
+                <i class="fa-solid fa-circle-up"></i> শুধু খরচ
+              </button>
+            </div>
+
+            <div class="filter-dropdowns">
+              <select id="partner-sort-select" class="select-input" onchange="filterPartnerFund()">
+                <option value="date-desc">তারিখ: নতুন আগে</option>
+                <option value="date-asc">তারিখ: পুরাতন আগে</option>
+                <option value="amount-desc">টাকা: বেশি আগে</option>
+                <option value="amount-asc">টাকা: কম আগে</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 4. Partner Fund Ledger Table -->
+      <section class="table-section">
+        <div class="table-card">
+          <div class="table-header-meta">
+            <div class="table-title">
+              <i class="fa-solid fa-handshake-angle" style="color: #c084fc;"></i>
+              <span>৪ পার্টনারের শুক্রবারের জমা ও খরচ খাতা (4 Partners Fund Ledger)</span>
+            </div>
+            <div class="table-sub-hint">
+              <i class="fa-solid fa-cloud" style="color: #10b981;"></i>
+              <span>ক্লাউড লাইভ সিঙ্ক: চারজনই নিজ নিজ ফোন থেকে লাইভ দেখতে পারবেন</span>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="ledger-table" id="partner-fund-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;" class="text-center">#</th>
+                  <th style="width: 120px;">তারিখ</th>
+                  <th style="width: 150px;">পার্টনার / খাত</th>
+                  <th style="width: 120px;" class="text-center">ধরন</th>
+                  <th style="width: 130px;">মাধ্যম</th>
+                  <th>বিবরণ / নোটস</th>
+                  <th style="width: 120px;" class="text-right">জমা (In BDT)</th>
+                  <th style="width: 120px;" class="text-right">খরচ (Out BDT)</th>
+                  <th style="width: 90px;" class="text-center">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="partner-table-body">
+                <!-- Rows injected dynamically via renderPartnerTable() -->
+              </tbody>
+            </table>
+          </div>
+
+          <div id="partner-empty-placeholder" class="empty-state" style="display: none;">
+            <i class="fa-solid fa-handshake"></i>
+            <h3>কোনো পার্টনার তহবিলের হিসাব নেই</h3>
+            <p>নতুন জমা দিতে উপরে "+ শুক্রবারের জমা এন্ট্রি" বাটনে ক্লিক করুন।</p>
+          </div>
+
+        </div>
+      </section>
+
+    </div><!-- End of view-partner-fund -->
+
   </main>
 
   <!-- ==========================================================================
@@ -2521,6 +2899,99 @@
     </div>
   </div>
 
+  <!-- ==========================================================================
+       MODAL: PARTNER FUND DEPOSIT & EXPENSE (পার্টনারদের শুক্রবারের জমা ও খরচ এন্ট্রি)
+       ========================================================================== -->
+  <div class="modal-overlay" id="partner-fund-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="partner-modal-title">
+          <i class="fa-solid fa-handshake" style="color: #c084fc;"></i>
+          <span>৪ পার্টনারের শুক্রবারের জমা / খরচ এন্ট্রি</span>
+        </h3>
+        <button class="modal-close-btn" onclick="closePartnerModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="partner-fund-form" onsubmit="handlePartnerFormSubmit(event)">
+          <input type="hidden" id="partner-form-id">
+
+          <div class="form-grid">
+
+            <!-- Type Switcher (Deposit vs Fund Expense) -->
+            <div class="type-switcher-group">
+              <div class="type-option-wrapper">
+                <input type="radio" name="partner-trans-type" id="partner-type-dep" value="deposit" class="type-option-input" checked onchange="updatePartnerModalTheme()">
+                <label for="partner-type-dep" class="type-option-label type-in">
+                  <i class="fa-solid fa-circle-down"></i>
+                  <span>শুক্রবার ২৫০৳ জমা (Deposit)</span>
+                </label>
+              </div>
+
+              <div class="type-option-wrapper">
+                <input type="radio" name="partner-trans-type" id="partner-type-exp" value="expense" class="type-option-input" onchange="updatePartnerModalTheme()">
+                <label for="partner-type-exp" class="type-option-label type-out">
+                  <i class="fa-solid fa-circle-up"></i>
+                  <span>ফান্ড থেকে খরচ (Fund Expense)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Partner Selection -->
+            <div class="form-group" id="partner-select-wrap">
+              <label class="form-label">পার্টনারের নাম (Partner Name) <span class="req">*</span></label>
+              <select id="partner-form-name" class="form-control" required>
+                <option value="Ifty">👤 Ifty (ইফতি)</option>
+                <option value="Ratul">👤 Ratul (রাতুল)</option>
+                <option value="Hasib">👤 Hasib (হাসিব)</option>
+                <option value="Tanjir">👤 Tanjir (তানজির)</option>
+                <option value="Shared Fund">🤝 সার্বজনীন পার্টনার ফান্ড</option>
+              </select>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="form-group">
+              <label class="form-label">পেমেন্ট মাধ্যম (Method) <span class="req">*</span></label>
+              <select id="partner-form-method" class="form-control" required>
+                <option value="bKash">📱 bKash (01834093932)</option>
+                <option value="Cash">💵 Cash (নগদ ক্যাশ)</option>
+                <option value="Rocket">🚀 Rocket (018927170930)</option>
+                <option value="Bank">🏦 Bank Transfer</option>
+              </select>
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+              <label class="form-label">টাকার পরিমাণ (Amount BDT) <span class="req">*</span></label>
+              <input type="number" step="any" min="1" id="partner-form-amount" class="form-control" value="250" required style="font-size: 1.15rem; font-weight: 700; color: #34d399;">
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+              <label class="form-label">তারিখ (Date) <span class="req">*</span></label>
+              <input type="date" id="partner-form-date" class="form-control" required>
+            </div>
+
+            <!-- Description / Note -->
+            <div class="form-group full-width">
+              <label class="form-label">বিবরণ / নোটস (Description)</label>
+              <input type="text" id="partner-form-desc" class="form-control" placeholder="যেমন: শুক্রবার ২৫০ টাকা জমা, অফিস চা-নাস্তা খরচ...">
+            </div>
+
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closePartnerModal()">বাতিল</button>
+            <button type="submit" class="btn btn-success" id="partner-save-btn">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>হিসাব সেভ করুন</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toast-box"></div>
 
@@ -2650,17 +3121,21 @@
       const btnCust = document.getElementById('tab-btn-customer');
       const btnCash = document.getElementById('tab-btn-cashbook');
       const btnExp = document.getElementById('tab-btn-expense');
+      const btnPartner = document.getElementById('tab-btn-partner');
       const viewCust = document.getElementById('view-customer-ledger');
       const viewCash = document.getElementById('view-cash-register');
       const viewExp = document.getElementById('view-expense-tracker');
+      const viewPartner = document.getElementById('view-partner-fund');
 
       btnCust.classList.toggle('active', tab === 'customer');
       btnCash.classList.toggle('active', tab === 'cashbook');
       if (btnExp) btnExp.classList.toggle('active', tab === 'expense');
+      if (btnPartner) btnPartner.classList.toggle('active', tab === 'partner');
 
       viewCust.style.display = (tab === 'customer') ? 'block' : 'none';
       viewCash.style.display = (tab === 'cashbook') ? 'block' : 'none';
       if (viewExp) viewExp.style.display = (tab === 'expense') ? 'block' : 'none';
+      if (viewPartner) viewPartner.style.display = (tab === 'partner') ? 'block' : 'none';
 
       if (tab === 'customer') {
         refreshUI();
@@ -2668,6 +3143,8 @@
         updateCashbookUI();
       } else if (tab === 'expense') {
         updateExpenseUI();
+      } else if (tab === 'partner') {
+        updatePartnerUI();
       }
     }
 
@@ -3472,6 +3949,453 @@
       a.click();
       document.body.removeChild(a);
       showToast('📥 খরচ খাতা Excel (CSV) ডাউনলোড সম্পন্ন হয়েছে');
+    }
+
+
+    // ==========================================================================
+    // PARTNER FUND (৪ পার্টনারের শুক্রবারের জমা ও খরচ তহবিল) STATE & METHODS
+    // ==========================================================================
+    let allPartnerRecords = [];
+    let currentPartnerFilter = 'all';
+    const PARTNER_STORAGE_KEY = 'offside_partner_fund_records_v1';
+
+    function savePartnerToLocalStorage(records) {
+      try {
+        localStorage.setItem(PARTNER_STORAGE_KEY, JSON.stringify(records));
+      } catch (err) {
+        console.error('Partner LocalStorage write failed:', err);
+      }
+    }
+
+    function loadPartnerFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(PARTNER_STORAGE_KEY);
+        if (raw !== null) {
+          return JSON.parse(raw);
+        }
+      } catch (err) {
+        console.error('Partner LocalStorage read failed:', err);
+      }
+      return [];
+    }
+
+    function initPartnerRealtime() {
+      allPartnerRecords = loadPartnerFromLocalStorage() || [];
+      updatePartnerUI();
+
+      if (rtdb) {
+        rtdb.ref('partner_fund').on('value', (snapshot) => {
+          const val = snapshot.val();
+          let list = [];
+          if (val) {
+            if (Array.isArray(val)) {
+              list = val.filter(item => item != null);
+            } else if (typeof val === 'object') {
+              list = Object.values(val);
+            }
+            list.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+          }
+          allPartnerRecords = list;
+          savePartnerToLocalStorage(allPartnerRecords);
+          updatePartnerUI();
+        }, (err) => {
+          console.warn('Firebase partner fund sync error:', err);
+        });
+      }
+    }
+
+    function updatePartnerUI() {
+      let totalDep = 0;
+      let totalSpent = 0;
+
+      const partnerTotals = {
+        'Ifty': 0,
+        'Ratul': 0,
+        'Hasib': 0,
+        'Tanjir': 0
+      };
+
+      const partnerLastDates = {
+        'Ifty': '-',
+        'Ratul': '-',
+        'Hasib': '-',
+        'Tanjir': '-'
+      };
+
+      // Current week Friday calculation
+      const now = new Date();
+      const currentDay = now.getDay(); // 0: Sun, 1: Mon, ..., 5: Fri, 6: Sat
+      // Calculate most recent Friday
+      const diffToFriday = (currentDay >= 5) ? (currentDay - 5) : (currentDay + 2);
+      const fridayDate = new Date(now);
+      fridayDate.setDate(now.getDate() - diffToFriday);
+      const fridayStr = fridayDate.toISOString().split('T')[0];
+
+      const fridayPaidPartners = new Set();
+
+      allPartnerRecords.forEach(r => {
+        const amt = parseFloat(r.amount || 0);
+        const type = r.type || 'deposit';
+        const pName = r.partner || '';
+
+        if (type === 'deposit') {
+          totalDep += amt;
+          if (partnerTotals.hasOwnProperty(pName)) {
+            partnerTotals[pName] += amt;
+            if (partnerLastDates[pName] === '-' || new Date(r.date) > new Date(partnerLastDates[pName])) {
+              partnerLastDates[pName] = r.date;
+            }
+          }
+          if (r.date === fridayStr || (r.date && Math.abs(new Date(r.date) - fridayDate) < (3 * 86400000))) {
+            fridayPaidPartners.add(pName);
+          }
+        } else {
+          totalSpent += amt;
+        }
+      });
+
+      const netBalance = totalDep - totalSpent;
+
+      // Update KPIs
+      const elTotDep = document.getElementById('partner-kpi-total-deposit');
+      if (elTotDep) elTotDep.textContent = formatBDT(totalDep);
+
+      const elTotSpent = document.getElementById('partner-kpi-total-spent');
+      if (elTotSpent) elTotSpent.textContent = formatBDT(totalSpent);
+
+      const elNetBal = document.getElementById('partner-kpi-net-balance');
+      if (elNetBal) elNetBal.textContent = formatBDT(netBalance);
+
+      const elFriStatus = document.getElementById('partner-kpi-friday-status');
+      if (elFriStatus) elFriStatus.textContent = `${fridayPaidPartners.size}/4`;
+
+      const elFriDate = document.getElementById('partner-kpi-friday-date');
+      if (elFriDate) elFriDate.textContent = `শুক্রবার (${formatDateDisplay(fridayStr)})`;
+
+      // Update Individual Member Cards
+      const elIftyTot = document.getElementById('partner-stat-ifty-total');
+      if (elIftyTot) elIftyTot.textContent = `৳ ${formatBDT(partnerTotals['Ifty'])}`;
+      const elIftyLast = document.getElementById('partner-stat-ifty-last');
+      if (elIftyLast) elIftyLast.textContent = partnerLastDates['Ifty'] !== '-' ? formatDateDisplay(partnerLastDates['Ifty']) : '-';
+
+      const elRatulTot = document.getElementById('partner-stat-ratul-total');
+      if (elRatulTot) elRatulTot.textContent = `৳ ${formatBDT(partnerTotals['Ratul'])}`;
+      const elRatulLast = document.getElementById('partner-stat-ratul-last');
+      if (elRatulLast) elRatulLast.textContent = partnerLastDates['Ratul'] !== '-' ? formatDateDisplay(partnerLastDates['Ratul']) : '-';
+
+      const elHasibTot = document.getElementById('partner-stat-hasib-total');
+      if (elHasibTot) elHasibTot.textContent = `৳ ${formatBDT(partnerTotals['Hasib'])}`;
+      const elHasibLast = document.getElementById('partner-stat-hasib-last');
+      if (elHasibLast) elHasibLast.textContent = partnerLastDates['Hasib'] !== '-' ? formatDateDisplay(partnerLastDates['Hasib']) : '-';
+
+      const elTanjirTot = document.getElementById('partner-stat-tanjir-total');
+      if (elTanjirTot) elTanjirTot.textContent = `৳ ${formatBDT(partnerTotals['Tanjir'])}`;
+      const elTanjirLast = document.getElementById('partner-stat-tanjir-last');
+      if (elTanjirLast) elTanjirLast.textContent = partnerLastDates['Tanjir'] !== '-' ? formatDateDisplay(partnerLastDates['Tanjir']) : '-';
+
+      // Update Nav Badge
+      const elNavPart = document.getElementById('nav-badge-partner-balance');
+      if (elNavPart) elNavPart.textContent = `ফান্ড: ৳ ${formatBDT(netBalance)}`;
+
+      renderPartnerTable();
+    }
+
+    function setPartnerFilter(fVal, btnElem) {
+      currentPartnerFilter = fVal;
+      document.querySelectorAll('#view-partner-fund .filter-pill').forEach(b => b.classList.remove('active'));
+      if (btnElem) btnElem.classList.add('active');
+      renderPartnerTable();
+    }
+
+    function filterPartnerFund() {
+      renderPartnerTable();
+    }
+
+    function getPartnerBadge(pName) {
+      if (!pName) return '<span class="partner-badge ifty">👤 পার্টনার</span>';
+      const p = pName.toLowerCase();
+      if (p.includes('ifty')) return `<span class="partner-badge ifty"><i class="fa-solid fa-user-tie"></i> Ifty (ইফতি)</span>`;
+      if (p.includes('ratul')) return `<span class="partner-badge ratul"><i class="fa-solid fa-user-astronaut"></i> Ratul (রাতুল)</span>`;
+      if (p.includes('hasib')) return `<span class="partner-badge hasib"><i class="fa-solid fa-user-ninja"></i> Hasib (হাসিব)</span>`;
+      if (p.includes('tanjir')) return `<span class="partner-badge tanjir"><i class="fa-solid fa-user-gear"></i> Tanjir (তানজির)</span>`;
+      return `<span class="partner-badge fund-expense"><i class="fa-solid fa-handshake"></i> ${escapeHtml(pName)}</span>`;
+    }
+
+    function renderPartnerTable() {
+      const tbody = document.getElementById('partner-table-body');
+      const emptyState = document.getElementById('partner-empty-placeholder');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const query = (document.getElementById('partner-search-input')?.value || '').trim().toLowerCase();
+      const sortVal = document.getElementById('partner-sort-select')?.value || 'date-desc';
+
+      const elFilterAll = document.getElementById('partner-filter-count-all');
+      if (elFilterAll) elFilterAll.textContent = allPartnerRecords.length;
+
+      let filtered = allPartnerRecords.filter(r => {
+        const type = r.type || 'deposit';
+        const pName = r.partner || '';
+
+        if (currentPartnerFilter !== 'all') {
+          if (currentPartnerFilter === 'deposit' && type !== 'deposit') return false;
+          else if (currentPartnerFilter === 'expense' && type !== 'expense') return false;
+          else if (!currentPartnerFilter.includes('deposit') && !currentPartnerFilter.includes('expense')) {
+            if (!pName.toLowerCase().includes(currentPartnerFilter.toLowerCase())) return false;
+          }
+        }
+
+        if (query) {
+          const mName = pName.toLowerCase().includes(query);
+          const mDesc = (r.description || '').toLowerCase().includes(query);
+          const mMethod = (r.method || '').toLowerCase().includes(query);
+          if (!mName && !mDesc && !mMethod) return false;
+        }
+
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortVal === 'date-desc') return new Date(b.date || 0) - new Date(a.date || 0);
+        if (sortVal === 'date-asc') return new Date(a.date || 0) - new Date(b.date || 0);
+        if (sortVal === 'amount-desc') return parseFloat(b.amount || 0) - parseFloat(a.amount || 0);
+        if (sortVal === 'amount-asc') return parseFloat(a.amount || 0) - parseFloat(b.amount || 0);
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+      }
+      if (emptyState) emptyState.style.display = 'none';
+
+      filtered.forEach((r, idx) => {
+        const amt = parseFloat(r.amount || 0);
+        const type = r.type || 'deposit';
+        const method = r.method || 'bKash';
+        const mLower = method.toLowerCase();
+
+        let methodBadge = `<span class="account-badge cash"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(method)}</span>`;
+        if (mLower.includes('bkash')) {
+          methodBadge = `<span class="account-badge bkash"><i class="fa-solid fa-mobile-screen"></i> ${escapeHtml(method)}</span>`;
+        } else if (mLower.includes('rocket')) {
+          methodBadge = `<span class="account-badge rocket"><i class="fa-solid fa-bolt"></i> ${escapeHtml(method)}</span>`;
+        } else if (mLower.includes('bank')) {
+          methodBadge = `<span class="account-badge bank"><i class="fa-solid fa-building-columns"></i> ${escapeHtml(method)}</span>`;
+        }
+
+        let typeBadge = (type === 'deposit')
+          ? `<span class="entry-type-badge type-in"><i class="fa-solid fa-circle-down"></i> জমা</span>`
+          : `<span class="entry-type-badge type-out"><i class="fa-solid fa-circle-up"></i> খরচ</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-center" style="color: var(--text-dim); font-size: 0.78rem;">${idx + 1}</td>
+          <td style="white-space: nowrap; font-size: 0.82rem; color: #cbd5e1;">
+            <i class="fa-regular fa-calendar" style="color: var(--text-dim); margin-right: 4px;"></i>
+            ${formatDateDisplay(r.date)}
+          </td>
+          <td>${getPartnerBadge(r.partner)}</td>
+          <td class="text-center">${typeBadge}</td>
+          <td>${methodBadge}</td>
+          <td>
+            <div style="font-weight: 600; color: #f1f5f9;">${escapeHtml(r.description || '-')}</div>
+          </td>
+          <td class="text-right amount-val" style="color: #34d399; font-weight: 700;">
+            ${type === 'deposit' ? `৳ ${formatBDT(amt)}` : '-'}
+          </td>
+          <td class="text-right amount-val" style="color: #f87171; font-weight: 700;">
+            ${type === 'expense' ? `৳ ${formatBDT(amt)}` : '-'}
+          </td>
+          <td class="text-center">
+            <div class="row-actions" style="justify-content: center;">
+              <button class="action-btn" onclick="openPartnerEditModal(${r.id})" title="সম্পাদনা">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="action-btn del" onclick="deletePartnerRecord(${r.id})" title="মুছে ফেলুন">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openPartnerModal(defaultType = 'deposit') {
+      document.getElementById('partner-fund-form').reset();
+      document.getElementById('partner-form-id').value = '';
+
+      if (defaultType === 'expense') {
+        document.getElementById('partner-type-exp').checked = true;
+        document.getElementById('partner-form-amount').value = '';
+        document.getElementById('partner-form-desc').value = '';
+        document.getElementById('partner-form-name').value = 'Shared Fund';
+      } else {
+        document.getElementById('partner-type-dep').checked = true;
+        document.getElementById('partner-form-amount').value = '250';
+        document.getElementById('partner-form-desc').value = 'শুক্রবার ২৫০ টাকা জমা';
+        document.getElementById('partner-form-name').value = 'Ifty';
+      }
+
+      document.getElementById('partner-form-date').value = new Date().toISOString().split('T')[0];
+      updatePartnerModalTheme();
+      document.getElementById('partner-fund-modal').classList.add('active');
+    }
+
+    function openQuickPartnerDeposit(partnerName) {
+      openPartnerModal('deposit');
+      document.getElementById('partner-form-name').value = partnerName;
+      document.getElementById('partner-form-desc').value = `${partnerName}-এর শুক্রবার ২৫০ টাকা জমা`;
+    }
+
+    function closePartnerModal() {
+      document.getElementById('partner-fund-modal').classList.remove('active');
+    }
+
+    function updatePartnerModalTheme() {
+      const isExp = document.getElementById('partner-type-exp').checked;
+      const saveBtn = document.getElementById('partner-save-btn');
+      const amtInput = document.getElementById('partner-form-amount');
+
+      if (isExp) {
+        saveBtn.className = 'btn btn-outline';
+        saveBtn.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+        saveBtn.style.color = '#f87171';
+        saveBtn.innerHTML = '<i class="fa-solid fa-arrow-up-from-bracket"></i> <span>ফান্ড খরচ সেভ করুন</span>';
+        amtInput.style.color = '#f87171';
+      } else {
+        saveBtn.className = 'btn btn-success';
+        saveBtn.style.borderColor = '';
+        saveBtn.style.color = '#ffffff';
+        saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span>জমা হিসাব সেভ করুন</span>';
+        amtInput.style.color = '#34d399';
+      }
+    }
+
+    function openPartnerEditModal(id) {
+      const rec = allPartnerRecords.find(r => Number(r.id) === Number(id));
+      if (!rec) return;
+
+      document.getElementById('partner-form-id').value = rec.id;
+      document.getElementById('partner-form-name').value = rec.partner || 'Ifty';
+      document.getElementById('partner-form-method').value = rec.method || 'bKash';
+      document.getElementById('partner-form-amount').value = rec.amount || 250;
+      document.getElementById('partner-form-date').value = rec.date || new Date().toISOString().split('T')[0];
+      document.getElementById('partner-form-desc').value = rec.description || '';
+
+      if (rec.type === 'expense') {
+        document.getElementById('partner-type-exp').checked = true;
+      } else {
+        document.getElementById('partner-type-dep').checked = true;
+      }
+
+      updatePartnerModalTheme();
+      document.getElementById('partner-fund-modal').classList.add('active');
+    }
+
+    async function handlePartnerFormSubmit(e) {
+      e.preventDefault();
+      const idVal = document.getElementById('partner-form-id').value;
+      const isExp = document.getElementById('partner-type-exp').checked;
+      const type = isExp ? 'expense' : 'deposit';
+      const partner = document.getElementById('partner-form-name').value;
+      const method = document.getElementById('partner-form-method').value;
+      const amount = parseFloat(document.getElementById('partner-form-amount').value || 0);
+      const date = document.getElementById('partner-form-date').value;
+      const description = document.getElementById('partner-form-desc').value.trim();
+
+      const recordObj = {
+        id: idVal ? Number(idVal) : Date.now(),
+        type,
+        partner,
+        method,
+        amount,
+        date,
+        description,
+        created_at: new Date().toISOString()
+      };
+
+      await savePartnerRecord(recordObj);
+      closePartnerModal();
+    }
+
+    async function savePartnerRecord(data) {
+      if (!data.id) data.id = Date.now();
+      data.amount = parseFloat(data.amount || 0);
+
+      // 1. Firebase Cloud Sync
+      if (rtdb) {
+        try {
+          await rtdb.ref('partner_fund/' + data.id).set(data);
+        } catch (err) {
+          console.warn('Firebase partner fund save error:', err);
+        }
+      }
+
+      // 2. Local memory update
+      const idx = allPartnerRecords.findIndex(r => Number(r.id) === Number(data.id));
+      if (idx !== -1) {
+        allPartnerRecords[idx] = data;
+      } else {
+        allPartnerRecords.unshift(data);
+      }
+      savePartnerToLocalStorage(allPartnerRecords);
+      updatePartnerUI();
+
+      const typeLabel = (data.type === 'deposit') ? 'জমা' : 'খরচ';
+      showToast(`✅ ${data.partner}-এর ৳${formatBDT(data.amount)} (${data.method}) ${typeLabel} সফলভাবে সেভ হয়েছে!`);
+      return true;
+    }
+
+    async function deletePartnerRecord(id) {
+      const targetId = Number(id);
+      const rec = allPartnerRecords.find(r => Number(r.id) === targetId);
+      if (!rec) return;
+
+      if (!confirm(`আপনি কি নিশ্চিত যে ${rec.partner}-এর ৳${formatBDT(rec.amount)} হিসাবটি মুছে ফেলতে চান?`)) {
+        return;
+      }
+
+      if (rtdb) {
+        try {
+          await rtdb.ref('partner_fund/' + targetId).remove();
+        } catch (err) {
+          console.warn('Firebase partner delete error:', err);
+        }
+      }
+
+      allPartnerRecords = allPartnerRecords.filter(r => Number(r.id) !== targetId);
+      savePartnerToLocalStorage(allPartnerRecords);
+      updatePartnerUI();
+      showToast('🗑️ পার্টনার হিসাবটি মুছে ফেলা হয়েছে');
+    }
+
+    function exportPartnerFundCSV() {
+      if (allPartnerRecords.length === 0) {
+        alert('এক্সপোর্ট করার মতো কোনো পার্টনার লেনদেন পাওয়া যায়নি।');
+        return;
+      }
+
+      let csv = '﻿SL,Date,Partner,Type,Payment Method,Description,Deposit (BDT),Expense (BDT)\r\n';
+
+      allPartnerRecords.forEach((r, idx) => {
+        const amt = parseFloat(r.amount || 0);
+        const type = r.type || 'deposit';
+        const inAmt = (type === 'deposit') ? amt : 0;
+        const outAmt = (type === 'expense') ? amt : 0;
+        csv += `${idx + 1},"${r.date || ''}","${r.partner || ''}","${type === 'deposit' ? 'Deposit (জমা)' : 'Expense (খরচ)'}","${r.method || ''}","${(r.description || '').replace(/"/g, '""')}",${inAmt},${outAmt}\r\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Offside_4_Partners_Fund_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('📥 পার্টনার খাতা Excel (CSV) ডাউনলোড সম্পন্ন হয়েছে');
     }
 
     // Master persist function: updates allRecords, saves to LocalStorage, syncs to IndexedDB
@@ -4427,6 +5351,7 @@ Offside Exports থেকে বলছি। আপনার অর্ডার�
       initStorageEngine();
       initCashbookRealtime();
       initExpenseRealtime();
+      initPartnerRealtime();
     });
   </script>
 </body>

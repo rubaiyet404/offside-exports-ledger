@@ -1161,6 +1161,186 @@
         align-items: flex-start;
       }
     }
+
+    /* ==========================================================================
+       MASTER TAB NAVIGATION & CASH / BKASH REGISTER STYLES
+       ========================================================================== */
+    .master-nav-section {
+      padding: 20px 0 6px 0;
+    }
+    .master-nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 2px solid var(--border-subtle);
+      padding-bottom: 14px;
+      overflow-x: auto;
+    }
+    .master-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 24px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .master-tab-btn:hover {
+      background: var(--bg-card-hover);
+      color: #ffffff;
+      border-color: var(--blue-accent);
+      transform: translateY(-1px);
+    }
+    .master-tab-btn.active {
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.25), rgba(16, 185, 129, 0.2));
+      border-color: var(--blue-accent);
+      color: #ffffff;
+      box-shadow: 0 4px 18px rgba(37, 99, 235, 0.35);
+    }
+    .master-tab-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.08);
+      color: #cbd5e1;
+    }
+    .master-tab-btn.active .master-tab-badge {
+      background: var(--blue-accent);
+      color: #ffffff;
+    }
+    .master-tab-badge.green {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .master-tab-badge.pink {
+      background: rgba(226, 19, 110, 0.2);
+      color: #ff529c;
+      border: 1px solid rgba(226, 19, 110, 0.3);
+    }
+
+    /* Cashbook Specific KPI Cards */
+    .kpi-card.cash-fund::before { background: linear-gradient(90deg, #10b981, #34d399); }
+    .kpi-card.bkash-fund::before { background: linear-gradient(90deg, #e2136e, #ff529c); }
+    .kpi-card.rocket-fund::before { background: linear-gradient(90deg, #8b1fa8, #d16ce9); }
+    .kpi-card.total-vault::before { background: linear-gradient(90deg, #d4af37, #3b82f6); }
+
+    .kpi-card.cash-fund .kpi-icon-wrap { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+    .kpi-card.bkash-fund .kpi-icon-wrap { background: rgba(226, 19, 110, 0.15); color: #ff529c; }
+    .kpi-card.rocket-fund .kpi-icon-wrap { background: rgba(139, 31, 168, 0.15); color: #d16ce9; }
+    .kpi-card.total-vault .kpi-icon-wrap { background: rgba(212, 175, 55, 0.15); color: var(--gold-primary); }
+
+    /* Type radio switcher in modal */
+    .type-switcher-group {
+      display: flex;
+      gap: 12px;
+      grid-column: span 2;
+    }
+    .type-option-wrapper {
+      flex: 1;
+      position: relative;
+    }
+    .type-option-input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .type-option-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      background: var(--bg-card);
+      border: 2px solid var(--border-subtle);
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.92rem;
+      transition: all 0.2s ease;
+      color: var(--text-muted);
+      user-select: none;
+    }
+    .type-option-label:hover {
+      border-color: var(--blue-accent);
+      color: #ffffff;
+    }
+    .type-option-input:checked + .type-option-label.type-in {
+      background: rgba(16, 185, 129, 0.18);
+      border-color: #10b981;
+      color: #34d399;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+    }
+    .type-option-input:checked + .type-option-label.type-out {
+      background: rgba(239, 68, 68, 0.18);
+      border-color: #ef4444;
+      color: #f87171;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+    }
+
+    /* Cash entry badges in table */
+    .entry-type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+    .entry-type-badge.type-in {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .entry-type-badge.type-out {
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .account-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 11px;
+      border-radius: var(--radius-pill);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .account-badge.cash {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .account-badge.bkash {
+      background: rgba(226, 19, 110, 0.15);
+      color: #ff529c;
+      border: 1px solid rgba(226, 19, 110, 0.3);
+    }
+    .account-badge.rocket {
+      background: rgba(139, 31, 168, 0.15);
+      color: #d16ce9;
+      border: 1px solid rgba(139, 31, 168, 0.3);
+    }
+    .account-badge.bank {
+      background: rgba(59, 130, 246, 0.15);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
   </style>
 </head>
 <body>
@@ -1223,6 +1403,29 @@
 
   <main class="container">
 
+    <!-- ==========================================================================
+         MASTER TABS: 1. কাস্টমার বাকি খাতা  |  2. ক্যাশ ও বিকাশ ক্যাশ খাতা
+         ========================================================================== -->
+    <section class="master-nav-section">
+      <div class="master-nav-tabs">
+        <button class="master-tab-btn active" id="tab-btn-customer" onclick="switchMainTab('customer')">
+          <i class="fa-solid fa-users-rectangle"></i>
+          <span>কাস্টমার বাকি খাতা (Customer Ledger)</span>
+          <span class="master-tab-badge" id="nav-badge-customer-count">0 জন</span>
+        </button>
+        <button class="master-tab-btn" id="tab-btn-cashbook" onclick="switchMainTab('cashbook')">
+          <i class="fa-solid fa-wallet"></i>
+          <span>ক্যাশ ও বিকাশ খাতা (Cash & bKash Register)</span>
+          <span class="master-tab-badge green" id="nav-badge-cash-net">ক্যাশ: ৳ 0</span>
+          <span class="master-tab-badge pink" id="nav-badge-bkash-net">বিকাশ: ৳ 0</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         VIEW 1: CUSTOMER LEDGER (কাস্টমার বাকি খাতা)
+         ========================================================================== -->
+    <div id="view-customer-ledger">
     <!-- ==========================================================================
          2. KPI SUMMARY METRIC CARDS (Matching Google Sheet Top Row)
          ========================================================================== -->
@@ -1411,6 +1614,188 @@
 
       </div>
     </section>
+    </div><!-- End of view-customer-ledger -->
+
+    <!-- ==========================================================================
+         VIEW 2: CASH & BKASH REGISTER (ক্যাশ ও বিকাশ ক্যাশ খাতা)
+         ========================================================================== -->
+    <div id="view-cash-register" style="display: none;">
+
+      <!-- 1. Cash & bKash KPI Summary Cards -->
+      <section class="summary-section">
+        <div class="kpi-grid">
+
+          <!-- Cash in Hand KPI -->
+          <div class="kpi-card cash-fund">
+            <div class="kpi-header">
+              <span class="kpi-title">নগদ ক্যাশ ফান্ড (Cash in Hand)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-money-bill-wave"></i></div>
+            </div>
+            <div class="kpi-value">৳ <span id="cash-net-total">0</span></div>
+            <div class="kpi-meta" style="gap: 10px;">
+              <span style="color: #34d399;"><i class="fa-solid fa-arrow-down"></i> জমা: ৳<strong id="cash-in-total">0</strong></span>
+              <span style="color: #f87171;"><i class="fa-solid fa-arrow-up"></i> খরচ: ৳<strong id="cash-out-total">0</strong></span>
+            </div>
+          </div>
+
+          <!-- bKash Balance KPI -->
+          <div class="kpi-card bkash-fund">
+            <div class="kpi-header">
+              <span class="kpi-title">বিকাশ ব্যালেন্স (01834093932)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-mobile-screen-button"></i></div>
+            </div>
+            <div class="kpi-value">৳ <span id="bkash-net-total">0</span></div>
+            <div class="kpi-meta" style="gap: 10px;">
+              <span style="color: #ff529c;"><i class="fa-solid fa-arrow-down"></i> জমা: ৳<strong id="bkash-in-total">0</strong></span>
+              <span style="color: #f87171;"><i class="fa-solid fa-arrow-up"></i> খরচ: ৳<strong id="bkash-out-total">0</strong></span>
+            </div>
+          </div>
+
+          <!-- Rocket Balance KPI -->
+          <div class="kpi-card rocket-fund">
+            <div class="kpi-header">
+              <span class="kpi-title">রকেট ব্যালেন্স (018927170930)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-bolt"></i></div>
+            </div>
+            <div class="kpi-value">৳ <span id="rocket-net-total">0</span></div>
+            <div class="kpi-meta" style="gap: 10px;">
+              <span style="color: #d16ce9;"><i class="fa-solid fa-arrow-down"></i> জমা: ৳<strong id="rocket-in-total">0</strong></span>
+              <span style="color: #f87171;"><i class="fa-solid fa-arrow-up"></i> খরচ: ৳<strong id="rocket-out-total">0</strong></span>
+            </div>
+          </div>
+
+          <!-- Total Combined Vault KPI -->
+          <div class="kpi-card total-vault">
+            <div class="kpi-header">
+              <span class="kpi-title">সর্বমোট চলতি তহবিল (Total Funds)</span>
+              <div class="kpi-icon-wrap"><i class="fa-solid fa-vault"></i></div>
+            </div>
+            <div class="kpi-value">৳ <span id="grand-net-fund">0</span></div>
+            <div class="kpi-meta">
+              <i class="fa-solid fa-calendar-check" style="color: var(--gold-primary);"></i>
+              <span>আজকের মোট জমা: ৳ <strong id="today-cash-collection" style="color: #34d399;">0</strong></span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 2. Cash & bKash Action Toolbar -->
+      <section class="toolbar-section">
+        <div class="toolbar-card">
+
+          <div class="toolbar-top-row">
+            <div class="search-input-wrap">
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <input type="text" id="cash-search-input" class="search-input" placeholder="বিবরণ, উৎস, ট্রানজেকশন আইডি দিয়ে খুঁজুন..." oninput="filterCashbook()">
+            </div>
+
+            <div class="toolbar-actions">
+              <button class="btn btn-outline btn-sm" onclick="exportCashbookCSV()" title="ক্যাশ ও বিকাশ খাতা এক্সেল ডাউনলোড">
+                <i class="fa-solid fa-file-excel" style="color: #10b981;"></i>
+                <span>Excel (CSV)</span>
+              </button>
+
+              <button class="btn btn-outline btn-sm" onclick="window.print()" title="ক্যাশ খাতা প্রিন্ট করুন">
+                <i class="fa-solid fa-print"></i>
+                <span>প্রিন্ট / PDF</span>
+              </button>
+
+              <button class="btn btn-success btn-sm" onclick="openCashModal('Cash', 'in')" title="ক্যাশ টাকা জমা এন্ট্রি">
+                <i class="fa-solid fa-money-bill-wave"></i>
+                <span>+ ক্যাশ জমা</span>
+              </button>
+
+              <button class="btn btn-primary btn-sm" onclick="openCashModal('bKash', 'in')" style="background: linear-gradient(135deg, #e2136e, #be0e5b); box-shadow: 0 4px 14px rgba(226, 19, 110, 0.4);" title="বিকাশ টাকা জমা এন্ট্রি">
+                <i class="fa-solid fa-mobile-screen-button"></i>
+                <span>+ বিকাশ জমা</span>
+              </button>
+
+              <button class="btn btn-outline btn-sm" onclick="openCashModal('Cash', 'out')" style="border-color: rgba(239, 68, 68, 0.4); color: #f87171;" title="খরচ বা উত্তোলন এন্ট্রি">
+                <i class="fa-solid fa-arrow-up-from-bracket"></i>
+                <span>- খরচ / ড্র</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Cashbook Filters -->
+          <div class="filter-tabs-row">
+            <div class="status-filter-pills">
+              <button class="filter-pill active" onclick="setCashFilter('all', this)">
+                <i class="fa-solid fa-list-ul"></i> সব লেনদেন <span class="count-tag" id="cash-filter-count-all">0</span>
+              </button>
+              <button class="filter-pill paid-pill" onclick="setCashFilter('in', this)">
+                <i class="fa-solid fa-circle-down" style="color: #34d399;"></i> শুধু জমা (In) <span class="count-tag" id="cash-filter-count-in">0</span>
+              </button>
+              <button class="filter-pill due-pill" onclick="setCashFilter('out', this)">
+                <i class="fa-solid fa-circle-up" style="color: #f87171;"></i> শুধু খরচ (Out) <span class="count-tag" id="cash-filter-count-out">0</span>
+              </button>
+              <button class="filter-pill" onclick="setCashFilter('Cash', this)" style="border-color: rgba(16, 185, 129, 0.4);">
+                <i class="fa-solid fa-money-bill-wave" style="color: #34d399;"></i> নগদ ক্যাশ <span class="count-tag" id="cash-filter-count-cash">0</span>
+              </button>
+              <button class="filter-pill" onclick="setCashFilter('bKash', this)" style="border-color: rgba(226, 19, 110, 0.4);">
+                <i class="fa-solid fa-mobile-screen" style="color: #ff529c;"></i> বিকাশ <span class="count-tag" id="cash-filter-count-bkash">0</span>
+              </button>
+            </div>
+
+            <div class="filter-dropdowns">
+              <select id="cash-sort-select" class="select-input" onchange="filterCashbook()">
+                <option value="date-desc">তারিখ: নতুন আগে</option>
+                <option value="date-asc">তারিখ: পুরাতন আগে</option>
+                <option value="amount-desc">টাকার অংক: বেশি আগে</option>
+                <option value="amount-asc">টাকার অংক: কম আগে</option>
+              </select>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- 3. Cash & bKash Master Transaction Table -->
+      <section class="table-section">
+        <div class="table-card">
+          <div class="table-header-meta">
+            <div class="table-title">
+              <i class="fa-solid fa-cash-register" style="color: var(--blue-glow);"></i>
+              <span>দৈনিক ক্যাশ ও বিকাশ খাতা (Daily Cash & bKash Register)</span>
+            </div>
+            <div class="table-sub-hint">
+              <i class="fa-solid fa-cloud" style="color: #10b981;"></i>
+              <span>ক্লাউড লাইভ সিঙ্ক: সকল ডিভাইসে রিয়েল-টাইমে আপডেট হবে</span>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="ledger-table" id="cashbook-ledger-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;" class="text-center">#</th>
+                  <th style="width: 120px;">তারিখ</th>
+                  <th style="width: 130px;">মাধ্যম</th>
+                  <th style="width: 110px;" class="text-center">ধরন</th>
+                  <th>বিবরণ / উৎস / কার থেকে</th>
+                  <th style="width: 130px;">রেফারেন্স / TrxID</th>
+                  <th style="width: 120px;" class="text-right">জমা (In BDT)</th>
+                  <th style="width: 120px;" class="text-right">খরচ (Out BDT)</th>
+                  <th style="width: 90px;" class="text-center">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="cashbook-table-body">
+                <!-- Rows injected dynamically via renderCashbookTable() -->
+              </tbody>
+            </table>
+          </div>
+
+          <div id="cashbook-empty-placeholder" class="empty-state" style="display: none;">
+            <i class="fa-solid fa-wallet"></i>
+            <h3>কোনো ক্যাশ বা বিকাশ হিসাব নেই</h3>
+            <p>নতুন ক্যাশ বা বিকাশ এন্ট্রি দিতে উপরে "+ ক্যাশ জমা" বা "+ বিকাশ জমা" বাটনে ক্লিক করুন।</p>
+          </div>
+
+        </div>
+      </section>
+
+    </div><!-- End of view-cash-register -->
 
   </main>
 
@@ -1732,6 +2117,99 @@
     </div>
   </div>
 
+  <!-- ==========================================================================
+       MODAL: CASH & BKASH ENTRY (ক্যাশ ও বিকাশ জমা/খরচ এন্ট্রি)
+       ========================================================================== -->
+  <div class="modal-overlay" id="cash-entry-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="cash-modal-title">
+          <i class="fa-solid fa-money-bill-transfer" style="color: var(--blue-glow);"></i>
+          <span>ক্যাশ / বিকাশ হিসাব এন্ট্রি</span>
+        </h3>
+        <button class="modal-close-btn" onclick="closeCashModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <form id="cash-entry-form" onsubmit="handleCashFormSubmit(event)">
+          <input type="hidden" id="cash-form-id">
+
+          <div class="form-grid">
+
+            <!-- Type Switcher (Inflow vs Outflow) -->
+            <div class="type-switcher-group">
+              <div class="type-option-wrapper">
+                <input type="radio" name="cash-type" id="type-in-radio" value="in" class="type-option-input" checked onchange="updateCashModalTheme()">
+                <label for="type-in-radio" class="type-option-label type-in">
+                  <i class="fa-solid fa-circle-down"></i>
+                  <span>টাকা জমা / আসলো (Inflow)</span>
+                </label>
+              </div>
+
+              <div class="type-option-wrapper">
+                <input type="radio" name="cash-type" id="type-out-radio" value="out" class="type-option-input" onchange="updateCashModalTheme()">
+                <label for="type-out-radio" class="type-option-label type-out">
+                  <i class="fa-solid fa-circle-up"></i>
+                  <span>টাকা খরচ / গেলো (Expense)</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Payment Account / Channel -->
+            <div class="form-group">
+              <label class="form-label">পেমেন্ট মাধ্যম (Account) <span class="req">*</span></label>
+              <select id="cash-form-account" class="form-control" required>
+                <option value="Cash">💵 Cash (নগদ ক্যাশ)</option>
+                <option value="bKash">📱 bKash (01834093932)</option>
+                <option value="Rocket">🚀 Rocket (018927170930)</option>
+                <option value="Bank">🏦 Bank Transfer</option>
+              </select>
+            </div>
+
+            <!-- Amount -->
+            <div class="form-group">
+              <label class="form-label">টাকার পরিমাণ (Amount BDT) <span class="req">*</span></label>
+              <input type="number" step="any" min="1" id="cash-form-amount" class="form-control" placeholder="0.00" required style="font-size: 1.1rem; font-weight: 700; color: #34d399;">
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+              <label class="form-label">তারিখ (Date) <span class="req">*</span></label>
+              <input type="date" id="cash-form-date" class="form-control" required>
+            </div>
+
+            <!-- Reference / TrxID -->
+            <div class="form-group">
+              <label class="form-label">রেফারেন্স / TrxID / মেমো নং</label>
+              <input type="text" id="cash-form-ref" class="form-control" placeholder="যেমন: TRX92834, MEMO-10">
+            </div>
+
+            <!-- Source / Purpose -->
+            <div class="form-group full-width">
+              <label class="form-label">কার কাছ থেকে আসলো / কিসের খরচ (Source / Purpose) <span class="req">*</span></label>
+              <input type="text" id="cash-form-source" class="form-control" placeholder="যেমন: আজকের দোকানের বিক্রি, কাস্টমার পেমেন্ট, অফিস খরচ, পরিবহন..." required>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group full-width">
+              <label class="form-label">অতিরিক্ত বিবরণ / নোটস</label>
+              <textarea id="cash-form-notes" class="form-control" rows="2" placeholder="অন্য কোনো বিস্তারিত তথ্য থাকলে লিখুন..."></textarea>
+            </div>
+
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeCashModal()">বাতিল</button>
+            <button type="submit" class="btn btn-success" id="cash-save-btn">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>হিসাব সেভ করুন</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div class="toast-container" id="toast-box"></div>
 
@@ -1845,6 +2323,467 @@
         console.error("LocalStorage read failed:", err);
       }
       return null;
+    }
+
+
+    // ==========================================================================
+    // CASHBOOK & MASTER TABS STATE & METHODS
+    // ==========================================================================
+    let currentMainTab = 'customer';
+    let allCashRecords = [];
+    let currentCashFilter = 'all';
+    const CASH_STORAGE_KEY = 'offside_cashbook_records_v1';
+
+    function switchMainTab(tab) {
+      currentMainTab = tab;
+      const btnCust = document.getElementById('tab-btn-customer');
+      const btnCash = document.getElementById('tab-btn-cashbook');
+      const viewCust = document.getElementById('view-customer-ledger');
+      const viewCash = document.getElementById('view-cash-register');
+
+      if (tab === 'customer') {
+        btnCust.classList.add('active');
+        btnCash.classList.remove('active');
+        viewCust.style.display = 'block';
+        viewCash.style.display = 'none';
+        refreshUI();
+      } else {
+        btnCash.classList.add('active');
+        btnCust.classList.remove('active');
+        viewCust.style.display = 'none';
+        viewCash.style.display = 'block';
+        updateCashbookUI();
+      }
+    }
+
+    function saveCashToLocalStorage(records) {
+      try {
+        localStorage.setItem(CASH_STORAGE_KEY, JSON.stringify(records));
+      } catch (err) {
+        console.error('Cash LocalStorage write failed:', err);
+      }
+    }
+
+    function loadCashFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(CASH_STORAGE_KEY);
+        if (raw !== null) {
+          return JSON.parse(raw);
+        }
+      } catch (err) {
+        console.error('Cash LocalStorage read failed:', err);
+      }
+      return [];
+    }
+
+    // Cashbook Realtime Sync Setup
+    function initCashbookRealtime() {
+      // 1. Load local cache first
+      allCashRecords = loadCashFromLocalStorage() || [];
+      updateCashbookUI();
+
+      // 2. Firebase Cloud Realtime Listener
+      if (rtdb) {
+        rtdb.ref('cashbook').on('value', (snapshot) => {
+          const val = snapshot.val();
+          let list = [];
+          if (val) {
+            if (Array.isArray(val)) {
+              list = val.filter(item => item != null);
+            } else if (typeof val === 'object') {
+              list = Object.values(val);
+            }
+            list.sort((a, b) => Number(b.id || 0) - Number(a.id || 0));
+          }
+          allCashRecords = list;
+          saveCashToLocalStorage(allCashRecords);
+          updateCashbookUI();
+        }, (err) => {
+          console.warn('Firebase cashbook sync error:', err);
+        });
+      }
+    }
+
+    function updateCashbookUI() {
+      let cashIn = 0, cashOut = 0;
+      let bkashIn = 0, bkashOut = 0;
+      let rocketIn = 0, rocketOut = 0;
+      let todayIn = 0;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      allCashRecords.forEach(r => {
+        const amt = parseFloat(r.amount || 0);
+        const type = r.type || 'in';
+        const acc = (r.account || 'Cash').toLowerCase();
+
+        if (r.date === todayStr && type === 'in') {
+          todayIn += amt;
+        }
+
+        if (acc.includes('cash')) {
+          if (type === 'in') cashIn += amt; else cashOut += amt;
+        } else if (acc.includes('bkash')) {
+          if (type === 'in') bkashIn += amt; else bkashOut += amt;
+        } else if (acc.includes('rocket')) {
+          if (type === 'in') rocketIn += amt; else rocketOut += amt;
+        }
+      });
+
+      const netCash = cashIn - cashOut;
+      const netBkash = bkashIn - bkashOut;
+      const netRocket = rocketIn - rocketOut;
+      const grandFund = netCash + netBkash + netRocket;
+
+      // Update Cashbook KPIs
+      const elCashNet = document.getElementById('cash-net-total');
+      if (elCashNet) elCashNet.textContent = formatBDT(netCash);
+      const elCashIn = document.getElementById('cash-in-total');
+      if (elCashIn) elCashIn.textContent = formatBDT(cashIn);
+      const elCashOut = document.getElementById('cash-out-total');
+      if (elCashOut) elCashOut.textContent = formatBDT(cashOut);
+
+      const elBkashNet = document.getElementById('bkash-net-total');
+      if (elBkashNet) elBkashNet.textContent = formatBDT(netBkash);
+      const elBkashIn = document.getElementById('bkash-in-total');
+      if (elBkashIn) elBkashIn.textContent = formatBDT(bkashIn);
+      const elBkashOut = document.getElementById('bkash-out-total');
+      if (elBkashOut) elBkashOut.textContent = formatBDT(bkashOut);
+
+      const elRocketNet = document.getElementById('rocket-net-total');
+      if (elRocketNet) elRocketNet.textContent = formatBDT(netRocket);
+      const elRocketIn = document.getElementById('rocket-in-total');
+      if (elRocketIn) elRocketIn.textContent = formatBDT(rocketIn);
+      const elRocketOut = document.getElementById('rocket-out-total');
+      if (elRocketOut) elRocketOut.textContent = formatBDT(rocketOut);
+
+      const elGrandFund = document.getElementById('grand-net-fund');
+      if (elGrandFund) elGrandFund.textContent = formatBDT(grandFund);
+      const elTodayCol = document.getElementById('today-cash-collection');
+      if (elTodayCol) elTodayCol.textContent = formatBDT(todayIn);
+
+      // Update Nav Badges
+      const elNavCust = document.getElementById('nav-badge-customer-count');
+      if (elNavCust) elNavCust.textContent = `${allRecords.length} জন`;
+      const elNavCash = document.getElementById('nav-badge-cash-net');
+      if (elNavCash) elNavCash.textContent = `ক্যাশ: ৳ ${formatBDT(netCash)}`;
+      const elNavBkash = document.getElementById('nav-badge-bkash-net');
+      if (elNavBkash) elNavBkash.textContent = `বিকাশ: ৳ ${formatBDT(netBkash)}`;
+
+      renderCashbookTable();
+    }
+
+    function setCashFilter(filterType, btnElem) {
+      currentCashFilter = filterType;
+      document.querySelectorAll('#view-cash-register .filter-pill').forEach(b => b.classList.remove('active'));
+      if (btnElem) btnElem.classList.add('active');
+      renderCashbookTable();
+    }
+
+    function filterCashbook() {
+      renderCashbookTable();
+    }
+
+    function renderCashbookTable() {
+      const tbody = document.getElementById('cashbook-table-body');
+      const emptyState = document.getElementById('cashbook-empty-placeholder');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      const query = (document.getElementById('cash-search-input')?.value || '').trim().toLowerCase();
+      const sortVal = document.getElementById('cash-sort-select')?.value || 'date-desc';
+
+      let inCount = 0, outCount = 0, cashCount = 0, bkashCount = 0;
+      allCashRecords.forEach(r => {
+        const type = r.type || 'in';
+        const acc = (r.account || 'Cash').toLowerCase();
+        if (type === 'in') inCount++; else outCount++;
+        if (acc.includes('cash')) cashCount++;
+        if (acc.includes('bkash')) bkashCount++;
+      });
+
+      const elCountAll = document.getElementById('cash-filter-count-all');
+      if (elCountAll) elCountAll.textContent = allCashRecords.length;
+      const elCountIn = document.getElementById('cash-filter-count-in');
+      if (elCountIn) elCountIn.textContent = inCount;
+      const elCountOut = document.getElementById('cash-filter-count-out');
+      if (elCountOut) elCountOut.textContent = outCount;
+      const elCountCash = document.getElementById('cash-filter-count-cash');
+      if (elCountCash) elCountCash.textContent = cashCount;
+      const elCountBkash = document.getElementById('cash-filter-count-bkash');
+      if (elCountBkash) elCountBkash.textContent = bkashCount;
+
+      let filtered = allCashRecords.filter(r => {
+        const type = r.type || 'in';
+        const acc = r.account || 'Cash';
+
+        if (currentCashFilter === 'in' && type !== 'in') return false;
+        if (currentCashFilter === 'out' && type !== 'out') return false;
+        if (currentCashFilter === 'Cash' && !acc.toLowerCase().includes('cash')) return false;
+        if (currentCashFilter === 'bKash' && !acc.toLowerCase().includes('bkash')) return false;
+
+        if (query) {
+          const mSource = (r.source || '').toLowerCase().includes(query);
+          const mRef = (r.ref || '').toLowerCase().includes(query);
+          const mNotes = (r.notes || '').toLowerCase().includes(query);
+          const mAcc = (r.account || '').toLowerCase().includes(query);
+          if (!mSource && !mRef && !mNotes && !mAcc) return false;
+        }
+        return true;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortVal === 'date-desc') return new Date(b.date || 0) - new Date(a.date || 0);
+        if (sortVal === 'date-asc') return new Date(a.date || 0) - new Date(b.date || 0);
+        if (sortVal === 'amount-desc') return parseFloat(b.amount || 0) - parseFloat(a.amount || 0);
+        if (sortVal === 'amount-asc') return parseFloat(a.amount || 0) - parseFloat(b.amount || 0);
+        return 0;
+      });
+
+      if (filtered.length === 0) {
+        if (emptyState) emptyState.style.display = 'block';
+        return;
+      }
+      if (emptyState) emptyState.style.display = 'none';
+
+      filtered.forEach((r, idx) => {
+        const amt = parseFloat(r.amount || 0);
+        const type = r.type || 'in';
+        const acc = r.account || 'Cash';
+        const accLower = acc.toLowerCase();
+
+        let accBadge = `<span class="account-badge cash"><i class="fa-solid fa-money-bill-wave"></i> ${escapeHtml(acc)}</span>`;
+        if (accLower.includes('bkash')) {
+          accBadge = `<span class="account-badge bkash"><i class="fa-solid fa-mobile-screen"></i> ${escapeHtml(acc)}</span>`;
+        } else if (accLower.includes('rocket')) {
+          accBadge = `<span class="account-badge rocket"><i class="fa-solid fa-bolt"></i> ${escapeHtml(acc)}</span>`;
+        } else if (accLower.includes('bank')) {
+          accBadge = `<span class="account-badge bank"><i class="fa-solid fa-building-columns"></i> ${escapeHtml(acc)}</span>`;
+        }
+
+        let typeBadge = type === 'in' 
+          ? `<span class="entry-type-badge type-in"><i class="fa-solid fa-circle-down"></i> জমা</span>` 
+          : `<span class="entry-type-badge type-out"><i class="fa-solid fa-circle-up"></i> খরচ</span>`;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="text-center" style="color: var(--text-dim); font-size: 0.78rem;">${idx + 1}</td>
+          <td style="white-space: nowrap; font-size: 0.82rem; color: #cbd5e1;">
+            <i class="fa-regular fa-calendar" style="color: var(--text-dim); margin-right: 4px;"></i>
+            ${formatDateDisplay(r.date)}
+          </td>
+          <td>${accBadge}</td>
+          <td class="text-center">${typeBadge}</td>
+          <td>
+            <div style="font-weight: 600; color: #f1f5f9;">${escapeHtml(r.source || '-')}</div>
+            ${r.notes ? `<div style="font-size: 0.75rem; color: var(--text-muted);">${escapeHtml(r.notes)}</div>` : ''}
+          </td>
+          <td style="font-family: 'Outfit', sans-serif; font-size: 0.82rem; color: #94a3b8;">
+            ${r.ref ? escapeHtml(r.ref) : '-'}
+          </td>
+          <td class="text-right amount-val" style="color: #34d399; font-weight: 700;">
+            ${type === 'in' ? `৳ ${formatBDT(amt)}` : '-'}
+          </td>
+          <td class="text-right amount-val" style="color: #f87171; font-weight: 700;">
+            ${type === 'out' ? `৳ ${formatBDT(amt)}` : '-'}
+          </td>
+          <td class="text-center">
+            <div class="row-actions" style="justify-content: center;">
+              <button class="action-btn" onclick="openCashEditModal(${r.id})" title="সম্পাদনা">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button class="action-btn del" onclick="deleteCashRecord(${r.id})" title="মুছে ফেলুন">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openCashModal(defaultAccount = 'Cash', defaultType = 'in') {
+      document.getElementById('cash-entry-form').reset();
+      document.getElementById('cash-form-id').value = '';
+      document.getElementById('cash-modal-title').innerHTML = `
+        <i class="fa-solid fa-money-bill-transfer" style="color: var(--blue-glow);"></i>
+        <span>ক্যাশ / বিকাশ হিসাব এন্ট্রি</span>
+      `;
+
+      // Select default account
+      document.getElementById('cash-form-account').value = defaultAccount;
+
+      // Select default type
+      if (defaultType === 'out') {
+        document.getElementById('type-out-radio').checked = true;
+      } else {
+        document.getElementById('type-in-radio').checked = true;
+      }
+
+      // Default date to today
+      document.getElementById('cash-form-date').value = new Date().toISOString().split('T')[0];
+
+      updateCashModalTheme();
+      document.getElementById('cash-entry-modal').classList.add('active');
+    }
+
+    function closeCashModal() {
+      document.getElementById('cash-entry-modal').classList.remove('active');
+    }
+
+    function updateCashModalTheme() {
+      const isOut = document.getElementById('type-out-radio').checked;
+      const saveBtn = document.getElementById('cash-save-btn');
+      const amtInput = document.getElementById('cash-form-amount');
+
+      if (isOut) {
+        saveBtn.className = 'btn btn-outline';
+        saveBtn.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+        saveBtn.style.color = '#f87171';
+        saveBtn.innerHTML = '<i class="fa-solid fa-arrow-up-from-bracket"></i> <span>খরচ এন্ট্রি সেভ করুন</span>';
+        amtInput.style.color = '#f87171';
+      } else {
+        saveBtn.className = 'btn btn-success';
+        saveBtn.style.borderColor = '';
+        saveBtn.style.color = '#ffffff';
+        saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> <span>জমা এন্ট্রি সেভ করুন</span>';
+        amtInput.style.color = '#34d399';
+      }
+    }
+
+    function openCashEditModal(id) {
+      const rec = allCashRecords.find(r => Number(r.id) === Number(id));
+      if (!rec) return;
+
+      document.getElementById('cash-form-id').value = rec.id;
+      document.getElementById('cash-form-account').value = rec.account || 'Cash';
+      document.getElementById('cash-form-amount').value = rec.amount || 0;
+      document.getElementById('cash-form-date').value = rec.date || new Date().toISOString().split('T')[0];
+      document.getElementById('cash-form-source').value = rec.source || '';
+      document.getElementById('cash-form-ref').value = rec.ref || '';
+      document.getElementById('cash-form-notes').value = rec.notes || '';
+
+      if (rec.type === 'out') {
+        document.getElementById('type-out-radio').checked = true;
+      } else {
+        document.getElementById('type-in-radio').checked = true;
+      }
+
+      document.getElementById('cash-modal-title').innerHTML = `
+        <i class="fa-solid fa-pen-to-square" style="color: var(--blue-glow);"></i>
+        <span>ক্যাশ / বিকাশ হিসাব সম্পাদনা</span>
+      `;
+
+      updateCashModalTheme();
+      document.getElementById('cash-entry-modal').classList.add('active');
+    }
+
+    async function handleCashFormSubmit(e) {
+      e.preventDefault();
+      const idVal = document.getElementById('cash-form-id').value;
+      const isOut = document.getElementById('type-out-radio').checked;
+      const type = isOut ? 'out' : 'in';
+      const account = document.getElementById('cash-form-account').value;
+      const amount = parseFloat(document.getElementById('cash-form-amount').value || 0);
+      const date = document.getElementById('cash-form-date').value;
+      const source = document.getElementById('cash-form-source').value.trim();
+      const ref = document.getElementById('cash-form-ref').value.trim();
+      const notes = document.getElementById('cash-form-notes').value.trim();
+
+      const recordObj = {
+        id: idVal ? Number(idVal) : Date.now(),
+        type,
+        account,
+        amount,
+        date,
+        source,
+        ref,
+        notes,
+        updated_at: new Date().toISOString()
+      };
+
+      await saveCashRecord(recordObj);
+      closeCashModal();
+    }
+
+    async function saveCashRecord(data) {
+      if (!data.id) data.id = Date.now();
+      data.amount = parseFloat(data.amount || 0);
+
+      // 1. Firebase Cloud Sync
+      if (rtdb) {
+        try {
+          await rtdb.ref('cashbook/' + data.id).set(data);
+        } catch (err) {
+          console.warn('Firebase cash save error:', err);
+        }
+      }
+
+      // 2. Local memory update
+      const idx = allCashRecords.findIndex(r => Number(r.id) === Number(data.id));
+      if (idx !== -1) {
+        allCashRecords[idx] = data;
+      } else {
+        allCashRecords.unshift(data);
+      }
+      saveCashToLocalStorage(allCashRecords);
+      updateCashbookUI();
+
+      const typeLabel = data.type === 'in' ? 'জমা' : 'খরচ';
+      showToast(`✅ ৳${formatBDT(data.amount)} (${data.account}) ${typeLabel} হিসাব সফলভাবে সেভ হয়েছে!`);
+      return true;
+    }
+
+    async function deleteCashRecord(id) {
+      const targetId = Number(id);
+      const rec = allCashRecords.find(r => Number(r.id) === targetId);
+      if (!rec) return;
+
+      const desc = rec.source ? `"${rec.source}"` : `${rec.account}-এর`;
+      if (!confirm(`আপনি কি নিশ্চিত যে ${desc} ৳${formatBDT(rec.amount)} হিসাবটি মুছে ফেলতে চান?`)) {
+        return;
+      }
+
+      // 1. Delete from Firebase
+      if (rtdb) {
+        try {
+          await rtdb.ref('cashbook/' + targetId).remove();
+        } catch (err) {
+          console.warn('Firebase cash delete error:', err);
+        }
+      }
+
+      allCashRecords = allCashRecords.filter(r => Number(r.id) !== targetId);
+      saveCashToLocalStorage(allCashRecords);
+      updateCashbookUI();
+      showToast('🗑️ হিসাবটি মুছে ফেলা হয়েছে');
+    }
+
+    function exportCashbookCSV() {
+      if (allCashRecords.length === 0) {
+        alert('এক্সপোর্ট করার মতো কোনো ক্যাশ বা বিকাশ লেনদেন পাওয়া যায়নি।');
+        return;
+      }
+
+      let csv = '﻿SL,Date,Account,Type,Source / Details,Reference / TrxID,Inflow (BDT),Outflow (BDT),Notes\r\n';
+
+      allCashRecords.forEach((r, idx) => {
+        const amt = parseFloat(r.amount || 0);
+        const type = r.type || 'in';
+        const inAmt = type === 'in' ? amt : 0;
+        const outAmt = type === 'out' ? amt : 0;
+        csv += `${idx + 1},"${r.date || ''}","${r.account || ''}","${type === 'in' ? 'Inflow (জমা)' : 'Outflow (খরচ)'}","${(r.source || '').replace(/"/g, '""')}","${(r.ref || '').replace(/"/g, '""')}",${inAmt},${outAmt},"${(r.notes || '').replace(/"/g, '""')}"\r\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Offside_Cash_bKash_Register_${new Date().toISOString().split('T')[0]}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('📥 ক্যাশ ও বিকাশ খাতা Excel (CSV) ডাউনলোড সম্পন্ন হয়েছে');
     }
 
     // Master persist function: updates allRecords, saves to LocalStorage, syncs to IndexedDB
@@ -2252,6 +3191,9 @@
       const rate = totalBill > 0 ? ((totalReceived / totalBill) * 100).toFixed(1) : 0;
       document.getElementById('kpi-collection-rate').textContent = `${rate}%`;
       document.getElementById('kpi-progress-bar').style.width = `${Math.min(rate, 100)}%`;
+
+      const elNavCust = document.getElementById('nav-badge-customer-count');
+      if (elNavCust) elNavCust.textContent = `${allRecords.length} জন`;
 
       // Filter tabs counts
       document.getElementById('filter-count-all').textContent = allRecords.length;
@@ -2795,6 +3737,7 @@ Offside Exports থেকে বলছি। আপনার অর্ডার�
     // Initialize application on window load
     window.addEventListener('DOMContentLoaded', () => {
       initStorageEngine();
+      initCashbookRealtime();
     });
   </script>
 </body>

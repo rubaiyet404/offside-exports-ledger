@@ -1484,6 +1484,72 @@ HTML_CONTENT = r'''<!DOCTYPE html>
     .partner-badge.tanjir { background: rgba(226, 19, 110, 0.15); color: #ff529c; border: 1px solid rgba(226, 19, 110, 0.3); }
     .partner-badge.fund-expense { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
 
+    /* Partner WhatsApp Phone Chip & Friday Status Styling */
+    .partner-phone-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: rgba(37, 211, 102, 0.1);
+      color: #25D366;
+      border: 1px solid rgba(37, 211, 102, 0.25);
+      border-radius: 20px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .partner-phone-chip:hover {
+      background: rgba(37, 211, 102, 0.22);
+      border-color: #25D366;
+    }
+    .partner-friday-status-pill {
+      margin: 10px 0 12px 0;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .partner-friday-status-pill.paid {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .partner-friday-status-pill.due {
+      background: rgba(239, 68, 68, 0.12);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .partner-card-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .btn-whatsapp-remind {
+      background: #25D366 !important;
+      color: #ffffff !important;
+      border: none !important;
+      font-size: 0.8rem !important;
+      font-weight: 600 !important;
+      padding: 6px 12px !important;
+      border-radius: var(--radius-sm) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      cursor: pointer !important;
+      transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+      white-space: nowrap;
+    }
+    .btn-whatsapp-remind:hover {
+      background: #20ba59 !important;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4) !important;
+      transform: translateY(-1px) !important;
+    }
+
     .master-tab-badge.purple {
       background: rgba(139, 92, 246, 0.2);
       color: #c084fc;
@@ -2207,19 +2273,37 @@ HTML_CONTENT = r'''<!DOCTYPE html>
                 <div class="partner-avatar" style="border-color: #60a5fa; color: #60a5fa;">
                   <i class="fa-solid fa-user-tie"></i>
                 </div>
-                <div>
-                  <div class="partner-name">Ifty (ইফতি)</div>
-                  <div class="partner-role">Co-Founder / Partner</div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px;">
+                    <div>
+                      <div class="partner-name">Ifty (ইফতি)</div>
+                      <div class="partner-role">Co-Founder / Partner</div>
+                    </div>
+                    <div id="partner-phone-display-ifty" class="partner-phone-chip" onclick="openPartnerPhonesModal()" title="নাম্বার সেট / পরিবর্তন করুন">
+                      <i class="fa-brands fa-whatsapp"></i> <span id="partner-phone-val-ifty">+ নাম্বার দিন</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <!-- Friday Status Indicator -->
+              <div id="partner-friday-badge-ifty" class="partner-friday-status-pill due">
+                <i class="fa-solid fa-clock"></i> <span>চলতি শুক্রবার: ২৫০৳ বাকি</span>
+              </div>
+
               <div class="partner-stats">
                 <div class="partner-stat-val" id="partner-stat-ifty-total">৳ 0</div>
                 <div class="partner-stat-sub">মোট জমা দিয়েছেন | শেষ জমা: <strong id="partner-stat-ifty-last">-</strong></div>
               </div>
             </div>
-            <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Ifty')" style="width: 100%; border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;">
-              <i class="fa-solid fa-plus"></i> ইফতির ২৫০৳ জমা দিন
-            </button>
+            <div class="partner-card-actions">
+              <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Ifty')" style="flex: 1; border-color: rgba(59, 130, 246, 0.4); color: #60a5fa;">
+                <i class="fa-solid fa-plus"></i> ২৫০৳ জমা
+              </button>
+              <button class="btn-whatsapp-remind" id="partner-wa-btn-ifty" onclick="sendPartnerWhatsAppReminder('Ifty')" title="বৃহস্পতিবার WhatsApp রিমাইন্ডার পাঠান">
+                <i class="fa-brands fa-whatsapp"></i> রিমাইন্ডার
+              </button>
+            </div>
           </div>
 
           <!-- 2. Ratul -->
@@ -2229,19 +2313,37 @@ HTML_CONTENT = r'''<!DOCTYPE html>
                 <div class="partner-avatar" style="border-color: #34d399; color: #34d399;">
                   <i class="fa-solid fa-user-astronaut"></i>
                 </div>
-                <div>
-                  <div class="partner-name">Ratul (রাতুল)</div>
-                  <div class="partner-role">Co-Founder / Partner</div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px;">
+                    <div>
+                      <div class="partner-name">Ratul (রাতুল)</div>
+                      <div class="partner-role">Co-Founder / Partner</div>
+                    </div>
+                    <div id="partner-phone-display-ratul" class="partner-phone-chip" onclick="openPartnerPhonesModal()" title="নাম্বার সেট / পরিবর্তন করুন">
+                      <i class="fa-brands fa-whatsapp"></i> <span id="partner-phone-val-ratul">+ নাম্বার দিন</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <!-- Friday Status Indicator -->
+              <div id="partner-friday-badge-ratul" class="partner-friday-status-pill due">
+                <i class="fa-solid fa-clock"></i> <span>চলতি শুক্রবার: ২৫০৳ বাকি</span>
+              </div>
+
               <div class="partner-stats">
                 <div class="partner-stat-val" id="partner-stat-ratul-total">৳ 0</div>
                 <div class="partner-stat-sub">মোট জমা দিয়েছেন | শেষ জমা: <strong id="partner-stat-ratul-last">-</strong></div>
               </div>
             </div>
-            <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Ratul')" style="width: 100%; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
-              <i class="fa-solid fa-plus"></i> রাতুলের ২৫০৳ জমা দিন
-            </button>
+            <div class="partner-card-actions">
+              <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Ratul')" style="flex: 1; border-color: rgba(16, 185, 129, 0.4); color: #34d399;">
+                <i class="fa-solid fa-plus"></i> ২৫০৳ জমা
+              </button>
+              <button class="btn-whatsapp-remind" id="partner-wa-btn-ratul" onclick="sendPartnerWhatsAppReminder('Ratul')" title="বৃহস্পতিবার WhatsApp রিমাইন্ডার পাঠান">
+                <i class="fa-brands fa-whatsapp"></i> রিমাইন্ডার
+              </button>
+            </div>
           </div>
 
           <!-- 3. Hasib -->
@@ -2251,19 +2353,37 @@ HTML_CONTENT = r'''<!DOCTYPE html>
                 <div class="partner-avatar" style="border-color: #fbbf24; color: #fbbf24;">
                   <i class="fa-solid fa-user-ninja"></i>
                 </div>
-                <div>
-                  <div class="partner-name">Hasib (হাসিব)</div>
-                  <div class="partner-role">Co-Founder / Partner</div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px;">
+                    <div>
+                      <div class="partner-name">Hasib (হাসিব)</div>
+                      <div class="partner-role">Co-Founder / Partner</div>
+                    </div>
+                    <div id="partner-phone-display-hasib" class="partner-phone-chip" onclick="openPartnerPhonesModal()" title="নাম্বার সেট / পরিবর্তন করুন">
+                      <i class="fa-brands fa-whatsapp"></i> <span id="partner-phone-val-hasib">+ নাম্বার দিন</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <!-- Friday Status Indicator -->
+              <div id="partner-friday-badge-hasib" class="partner-friday-status-pill due">
+                <i class="fa-solid fa-clock"></i> <span>চলতি শুক্রবার: ২৫০৳ বাকি</span>
+              </div>
+
               <div class="partner-stats">
                 <div class="partner-stat-val" id="partner-stat-hasib-total">৳ 0</div>
                 <div class="partner-stat-sub">মোট জমা দিয়েছেন | শেষ জমা: <strong id="partner-stat-hasib-last">-</strong></div>
               </div>
             </div>
-            <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Hasib')" style="width: 100%; border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
-              <i class="fa-solid fa-plus"></i> হাসিবের ২৫০৳ জমা দিন
-            </button>
+            <div class="partner-card-actions">
+              <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Hasib')" style="flex: 1; border-color: rgba(245, 158, 11, 0.4); color: #fbbf24;">
+                <i class="fa-solid fa-plus"></i> ২৫০৳ জমা
+              </button>
+              <button class="btn-whatsapp-remind" id="partner-wa-btn-hasib" onclick="sendPartnerWhatsAppReminder('Hasib')" title="বৃহস্পতিবার WhatsApp রিমাইন্ডার পাঠান">
+                <i class="fa-brands fa-whatsapp"></i> রিমাইন্ডার
+              </button>
+            </div>
           </div>
 
           <!-- 4. Tanjir -->
@@ -2273,19 +2393,37 @@ HTML_CONTENT = r'''<!DOCTYPE html>
                 <div class="partner-avatar" style="border-color: #ff529c; color: #ff529c;">
                   <i class="fa-solid fa-user-gear"></i>
                 </div>
-                <div>
-                  <div class="partner-name">Tanjir (তানজির)</div>
-                  <div class="partner-role">Co-Founder / Partner</div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 4px;">
+                    <div>
+                      <div class="partner-name">Tanjir (তানজির)</div>
+                      <div class="partner-role">Co-Founder / Partner</div>
+                    </div>
+                    <div id="partner-phone-display-tanjir" class="partner-phone-chip" onclick="openPartnerPhonesModal()" title="নাম্বার সেট / পরিবর্তন করুন">
+                      <i class="fa-brands fa-whatsapp"></i> <span id="partner-phone-val-tanjir">+ নাম্বার দিন</span>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              <!-- Friday Status Indicator -->
+              <div id="partner-friday-badge-tanjir" class="partner-friday-status-pill due">
+                <i class="fa-solid fa-clock"></i> <span>চলতি শুক্রবার: ২৫০৳ বাকি</span>
+              </div>
+
               <div class="partner-stats">
                 <div class="partner-stat-val" id="partner-stat-tanjir-total">৳ 0</div>
                 <div class="partner-stat-sub">মোট জমা দিয়েছেন | শেষ জমা: <strong id="partner-stat-tanjir-last">-</strong></div>
               </div>
             </div>
-            <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Tanjir')" style="width: 100%; border-color: rgba(226, 19, 110, 0.4); color: #ff529c;">
-              <i class="fa-solid fa-plus"></i> তানজিরের ২৫০৳ জমা দিন
-            </button>
+            <div class="partner-card-actions">
+              <button class="btn btn-outline btn-sm" onclick="openQuickPartnerDeposit('Tanjir')" style="flex: 1; border-color: rgba(226, 19, 110, 0.4); color: #ff529c;">
+                <i class="fa-solid fa-plus"></i> ২৫০৳ জমা
+              </button>
+              <button class="btn-whatsapp-remind" id="partner-wa-btn-tanjir" onclick="sendPartnerWhatsAppReminder('Tanjir')" title="বৃহস্পতিবার WhatsApp রিমাইন্ডার পাঠান">
+                <i class="fa-brands fa-whatsapp"></i> রিমাইন্ডার
+              </button>
+            </div>
           </div>
 
         </div>
@@ -2302,6 +2440,16 @@ HTML_CONTENT = r'''<!DOCTYPE html>
             </div>
 
             <div class="toolbar-actions">
+              <button class="btn btn-outline btn-sm" onclick="openPartnerPhonesModal()" title="পার্টনারদের WhatsApp নাম্বার সেট করুন">
+                <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+                <span>WhatsApp নাম্বার</span>
+              </button>
+
+              <button class="btn btn-sm btn-whatsapp-remind" onclick="sendAllDueWhatsAppReminders()" title="যাদের চলতি শুক্রবারের ২৫০৳ বাকি তাদের সবাইকে রিমাইন্ডার পাঠান">
+                <i class="fa-solid fa-paper-plane"></i>
+                <span>বাকিদের রিমাইন্ডার</span>
+              </button>
+
               <button class="btn btn-outline btn-sm" onclick="exportPartnerFundCSV()" title="তহবিল খাতা এক্সেল ডাউনলোড">
                 <i class="fa-solid fa-file-excel" style="color: #10b981;"></i>
                 <span>Excel (CSV)</span>
@@ -2980,10 +3128,13 @@ HTML_CONTENT = r'''<!DOCTYPE html>
               <input type="number" step="any" min="1" id="partner-form-amount" class="form-control" value="250" required style="font-size: 1.15rem; font-weight: 700; color: #34d399;">
             </div>
 
-            <!-- Date -->
-            <div class="form-group">
-              <label class="form-label">তারিখ (Date) <span class="req">*</span></label>
-              <input type="date" id="partner-form-date" class="form-control" required>
+            <!-- Date (Strictly Friday-Only Dropdown for Deposit, Standard Date for Expense) -->
+            <div class="form-group" id="partner-date-group">
+              <label class="form-label" id="partner-date-label">শুক্রবার জমার তারিখ (Friday Date) <span class="req">*</span></label>
+              <select id="partner-form-friday-select" class="form-control" style="font-weight: 600; color: #c084fc; background: var(--bg-card); cursor: pointer;">
+                <!-- Populated dynamically with Fridays only! -->
+              </select>
+              <input type="date" id="partner-form-date" class="form-control" style="display: none;">
             </div>
 
             <!-- Description / Note -->
@@ -2999,6 +3150,69 @@ HTML_CONTENT = r'''<!DOCTYPE html>
             <button type="submit" class="btn btn-success" id="partner-save-btn">
               <i class="fa-solid fa-floppy-disk"></i>
               <span>হিসাব সেভ করুন</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
+       MODAL: PARTNER WHATSAPP PHONES SETUP (পার্টনারদের WhatsApp নাম্বার সেটআপ)
+       ========================================================================== -->
+  <div class="modal-overlay" id="partner-phones-modal">
+    <div class="modal-box" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 class="modal-title">
+          <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i>
+          <span>পার্টনারদের WhatsApp নাম্বার সেটআপ</span>
+        </h3>
+        <button class="modal-close-btn" onclick="closePartnerPhonesModal()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <p style="color: var(--text-muted); font-size: 0.86rem; margin-bottom: 16px; line-height: 1.5;">
+          প্রতি বৃহস্পতিবার স্বয়ংক্রিয়ভাবে এবং ১-ক্লিকে শুক্রবারের ২৫০৳ তহবিল জমার রিমাইন্ডার পাঠানোর জন্য ৪ পার্টনারের WhatsApp নাম্বার দিন:
+        </p>
+
+        <form id="partner-phones-form" onsubmit="handleSavePartnerPhones(event)">
+          <div class="form-grid" style="grid-template-columns: 1fr; gap: 12px;">
+
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-solid fa-user-tie" style="color: #60a5fa;"></i> Ifty (ইফতি) WhatsApp নাম্বার
+              </label>
+              <input type="tel" id="input-phone-ifty" class="form-control" placeholder="018XXXXXXXX বা 017XXXXXXXX">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-solid fa-user-astronaut" style="color: #34d399;"></i> Ratul (রাতুল) WhatsApp নাম্বার
+              </label>
+              <input type="tel" id="input-phone-ratul" class="form-control" placeholder="018XXXXXXXX বা 017XXXXXXXX">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-solid fa-user-ninja" style="color: #fbbf24;"></i> Hasib (হাসিব) WhatsApp নাম্বার
+              </label>
+              <input type="tel" id="input-phone-hasib" class="form-control" placeholder="018XXXXXXXX বা 017XXXXXXXX">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-solid fa-user-gear" style="color: #ff529c;"></i> Tanjir (তানজির) WhatsApp নাম্বার
+              </label>
+              <input type="tel" id="input-phone-tanjir" class="form-control" placeholder="018XXXXXXXX বা 017XXXXXXXX">
+            </div>
+
+          </div>
+
+          <div class="modal-footer" style="margin-top: 20px;">
+            <button type="button" class="btn btn-outline" onclick="closePartnerPhonesModal()">বাতিল</button>
+            <button type="submit" class="btn btn-success" style="background: #25D366; border: none;">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>নাম্বারগুলো সেভ করুন</span>
             </button>
           </div>
         </form>
@@ -3967,11 +4181,20 @@ HTML_CONTENT = r'''<!DOCTYPE html>
 
 
     // ==========================================================================
+    // ==========================================================================
     // PARTNER FUND (৪ পার্টনারের শুক্রবারের জমা ও খরচ তহবিল) STATE & METHODS
     // ==========================================================================
     let allPartnerRecords = [];
     let currentPartnerFilter = 'all';
     const PARTNER_STORAGE_KEY = 'offside_partner_fund_records_v1';
+    const PARTNER_PHONES_KEY = 'offside_partner_phones_v1';
+
+    let partnerPhoneNumbers = {
+      'Ifty': '',
+      'Ratul': '',
+      'Hasib': '',
+      'Tanjir': ''
+    };
 
     function savePartnerToLocalStorage(records) {
       try {
@@ -3993,11 +4216,171 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       return [];
     }
 
+    function loadPartnerPhonesFromLocalStorage() {
+      try {
+        const raw = localStorage.getItem(PARTNER_PHONES_KEY);
+        if (raw) {
+          return Object.assign({}, partnerPhoneNumbers, JSON.parse(raw));
+        }
+      } catch (e) {
+        console.error('Error loading partner phones:', e);
+      }
+      return partnerPhoneNumbers;
+    }
+
+    function savePartnerPhonesToLocalStorage(phones) {
+      try {
+        localStorage.setItem(PARTNER_PHONES_KEY, JSON.stringify(phones));
+      } catch (e) {
+        console.error('Error saving partner phones:', e);
+      }
+    }
+
+    function openPartnerPhonesModal() {
+      document.getElementById('input-phone-ifty').value = partnerPhoneNumbers['Ifty'] || '';
+      document.getElementById('input-phone-ratul').value = partnerPhoneNumbers['Ratul'] || '';
+      document.getElementById('input-phone-hasib').value = partnerPhoneNumbers['Hasib'] || '';
+      document.getElementById('input-phone-tanjir').value = partnerPhoneNumbers['Tanjir'] || '';
+      document.getElementById('partner-phones-modal').classList.add('active');
+    }
+
+    function closePartnerPhonesModal() {
+      document.getElementById('partner-phones-modal').classList.remove('active');
+    }
+
+    async function handleSavePartnerPhones(e) {
+      e.preventDefault();
+      partnerPhoneNumbers['Ifty'] = document.getElementById('input-phone-ifty').value.trim();
+      partnerPhoneNumbers['Ratul'] = document.getElementById('input-phone-ratul').value.trim();
+      partnerPhoneNumbers['Hasib'] = document.getElementById('input-phone-hasib').value.trim();
+      partnerPhoneNumbers['Tanjir'] = document.getElementById('input-phone-tanjir').value.trim();
+
+      savePartnerPhonesToLocalStorage(partnerPhoneNumbers);
+
+      // Sync to Firebase Realtime Database
+      if (rtdb) {
+        try {
+          await rtdb.ref('partner_phones').set(partnerPhoneNumbers);
+        } catch (err) {
+          console.warn('Firebase partner phones save error:', err);
+        }
+      }
+
+      updatePartnerPhonesUI();
+      closePartnerPhonesModal();
+      showToast('✅ পার্টনারদের WhatsApp নাম্বার সফলভাবে সংরক্ষিত হয়েছে!');
+    }
+
+    function updatePartnerPhonesUI() {
+      ['Ifty', 'Ratul', 'Hasib', 'Tanjir'].forEach(name => {
+        const phone = partnerPhoneNumbers[name] || '';
+        const key = name.toLowerCase();
+        const valElem = document.getElementById(`partner-phone-val-${key}`);
+        if (valElem) {
+          valElem.textContent = phone ? phone : '+ নাম্বার দিন';
+          valElem.style.color = phone ? '#25D366' : 'var(--text-dim)';
+        }
+      });
+    }
+
+    function toBengaliNumerals(str) {
+      const bnDigits = ['০', '১', '২', '৩', '৪', '৫', '৬', '৭', '৮', '৯'];
+      return String(str).replace(/[0-9]/g, w => bnDigits[parseInt(w, 10)]);
+    }
+
+    function formatLocalDateISO(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    // Smart Friday Calculations: returns YYYY-MM-DD of current or upcoming Friday
+    function getActiveFridayDate() {
+      const now = new Date();
+      const currentDay = now.getDay(); // 0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat
+      // If Sun to Fri (0 to 5): Active Friday is upcoming or today (5 - currentDay days)
+      // If Sat (6): Active Friday was yesterday (-1 day)
+      const diff = (currentDay <= 5) ? (5 - currentDay) : -1;
+      const fDate = new Date(now);
+      fDate.setDate(now.getDate() + diff);
+      return formatLocalDateISO(fDate);
+    }
+
+    function formatFridayBengali(dateStr) {
+      if (!dateStr) return '';
+      try {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          const year = toBengaliNumerals(parts[0]);
+          const monthIdx = parseInt(parts[1], 10) - 1;
+          const day = toBengaliNumerals(String(parseInt(parts[2], 10)).padStart(2, '0'));
+          const monthsBn = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
+          return `${day} ${monthsBn[monthIdx] || parts[1]} ${year} (শুক্রবার)`;
+        }
+      } catch (e) {}
+      return dateStr + ' (শুক্রবার)';
+    }
+
+    // Populate Friday-Only Dropdown (Strictly Fridays only)
+    function populateFridayOptions(selectedVal) {
+      const selectElem = document.getElementById('partner-form-friday-select');
+      if (!selectElem) return;
+
+      const activeFriday = getActiveFridayDate();
+      const parts = activeFriday.split('-');
+      const activeDateObj = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+
+      // Generate: 4 future Fridays, active Friday, and 12 past Fridays
+      const fridayList = [];
+      for (let offset = 4; offset >= -12; offset--) {
+        const d = new Date(activeDateObj);
+        d.setDate(activeDateObj.getDate() + (offset * 7));
+        const iso = formatLocalDateISO(d);
+
+        let tag = '';
+        if (offset === 0) tag = ' [চলতি সপ্তাহ ⭐]';
+        else if (offset === -1) tag = ' [গত সপ্তাহ]';
+        else if (offset === 1) tag = ' [পরবর্তী সপ্তাহ]';
+
+        fridayList.push({
+          dateStr: iso,
+          label: `${formatFridayBengali(iso)}${tag}`,
+          isCurrent: (offset === 0)
+        });
+      }
+
+      // If an existing record has an older Friday date not in list, prepend it
+      if (selectedVal && !fridayList.some(f => f.dateStr === selectedVal)) {
+        fridayList.unshift({
+          dateStr: selectedVal,
+          label: formatFridayBengali(selectedVal),
+          isCurrent: false
+        });
+      }
+
+      selectElem.innerHTML = '';
+      fridayList.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item.dateStr;
+        opt.textContent = item.label;
+        if (selectedVal) {
+          if (item.dateStr === selectedVal) opt.selected = true;
+        } else if (item.isCurrent) {
+          opt.selected = true;
+        }
+        selectElem.appendChild(opt);
+      });
+    }
+
     function initPartnerRealtime() {
       allPartnerRecords = loadPartnerFromLocalStorage() || [];
+      partnerPhoneNumbers = loadPartnerPhonesFromLocalStorage();
+      updatePartnerPhonesUI();
       updatePartnerUI();
 
       if (rtdb) {
+        // 1. Listen for Partner Fund Transactions
         rtdb.ref('partner_fund').on('value', (snapshot) => {
           const val = snapshot.val();
           let list = [];
@@ -4014,6 +4397,18 @@ HTML_CONTENT = r'''<!DOCTYPE html>
           updatePartnerUI();
         }, (err) => {
           console.warn('Firebase partner fund sync error:', err);
+        });
+
+        // 2. Listen for Partner WhatsApp Phone Numbers across all devices
+        rtdb.ref('partner_phones').on('value', (snapshot) => {
+          const val = snapshot.val();
+          if (val && typeof val === 'object') {
+            partnerPhoneNumbers = Object.assign({}, partnerPhoneNumbers, val);
+            savePartnerPhonesToLocalStorage(partnerPhoneNumbers);
+            updatePartnerPhonesUI();
+          }
+        }, (err) => {
+          console.warn('Firebase partner phones sync error:', err);
         });
       }
     }
@@ -4036,16 +4431,8 @@ HTML_CONTENT = r'''<!DOCTYPE html>
         'Tanjir': '-'
       };
 
-      // Current week Friday calculation
-      const now = new Date();
-      const currentDay = now.getDay(); // 0: Sun, 1: Mon, ..., 5: Fri, 6: Sat
-      // Calculate most recent Friday
-      const diffToFriday = (currentDay >= 5) ? (currentDay - 5) : (currentDay + 2);
-      const fridayDate = new Date(now);
-      fridayDate.setDate(now.getDate() - diffToFriday);
-      const fridayStr = fridayDate.toISOString().split('T')[0];
-
-      const fridayPaidPartners = new Set();
+      const activeFri = getActiveFridayDate();
+      const activeFridayPaidPartners = new Set();
 
       allPartnerRecords.forEach(r => {
         const amt = parseFloat(r.amount || 0);
@@ -4060,8 +4447,8 @@ HTML_CONTENT = r'''<!DOCTYPE html>
               partnerLastDates[pName] = r.date;
             }
           }
-          if (r.date === fridayStr || (r.date && Math.abs(new Date(r.date) - fridayDate) < (3 * 86400000))) {
-            fridayPaidPartners.add(pName);
+          if (r.date === activeFri) {
+            activeFridayPaidPartners.add(pName);
           }
         } else {
           totalSpent += amt;
@@ -4081,12 +4468,12 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       if (elNetBal) elNetBal.textContent = formatBDT(netBalance);
 
       const elFriStatus = document.getElementById('partner-kpi-friday-status');
-      if (elFriStatus) elFriStatus.textContent = `${fridayPaidPartners.size}/4`;
+      if (elFriStatus) elFriStatus.textContent = `${activeFridayPaidPartners.size}/4`;
 
       const elFriDate = document.getElementById('partner-kpi-friday-date');
-      if (elFriDate) elFriDate.textContent = `শুক্রবার (${formatDateDisplay(fridayStr)})`;
+      if (elFriDate) elFriDate.textContent = formatFridayBengali(activeFri);
 
-      // Update Individual Member Cards
+      // Update Individual Member Cards Total & Last Date
       const elIftyTot = document.getElementById('partner-stat-ifty-total');
       if (elIftyTot) elIftyTot.textContent = `৳ ${formatBDT(partnerTotals['Ifty'])}`;
       const elIftyLast = document.getElementById('partner-stat-ifty-last');
@@ -4107,6 +4494,34 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       const elTanjirLast = document.getElementById('partner-stat-tanjir-last');
       if (elTanjirLast) elTanjirLast.textContent = partnerLastDates['Tanjir'] !== '-' ? formatDateDisplay(partnerLastDates['Tanjir']) : '-';
 
+      // Update Friday Payment Status Badge & WhatsApp Button for each partner
+      ['Ifty', 'Ratul', 'Hasib', 'Tanjir'].forEach(name => {
+        const key = name.toLowerCase();
+        const isPaid = activeFridayPaidPartners.has(name);
+        const pillElem = document.getElementById(`partner-friday-badge-${key}`);
+        const btnWa = document.getElementById(`partner-wa-btn-${key}`);
+
+        if (pillElem) {
+          if (isPaid) {
+            pillElem.className = 'partner-friday-status-pill paid';
+            pillElem.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>চলতি শুক্রবার: ২৫০৳ জমা সম্পন্ন</span>`;
+          } else {
+            pillElem.className = 'partner-friday-status-pill due';
+            pillElem.innerHTML = `<i class="fa-solid fa-clock"></i> <span>চলতি শুক্রবার: ২৫০৳ বাকি</span>`;
+          }
+        }
+
+        if (btnWa) {
+          if (isPaid) {
+            btnWa.style.opacity = '0.65';
+            btnWa.title = 'ইতোমধ্যে এই শুক্রবারের ২৫০৳ জমা দিয়েছেন';
+          } else {
+            btnWa.style.opacity = '1';
+            btnWa.title = 'বৃহস্পতিবার WhatsApp রিমাইন্ডার পাঠান';
+          }
+        }
+      });
+
       // Update Nav Badge
       const elNavPart = document.getElementById('nav-badge-partner-balance');
       if (elNavPart) elNavPart.textContent = `ফান্ড: ৳ ${formatBDT(netBalance)}`;
@@ -4125,27 +4540,37 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       renderPartnerTable();
     }
 
-    function getPartnerBadge(pName) {
-      if (!pName) return '<span class="partner-badge ifty">👤 পার্টনার</span>';
-      const p = pName.toLowerCase();
-      if (p.includes('ifty')) return `<span class="partner-badge ifty"><i class="fa-solid fa-user-tie"></i> Ifty (ইফতি)</span>`;
-      if (p.includes('ratul')) return `<span class="partner-badge ratul"><i class="fa-solid fa-user-astronaut"></i> Ratul (রাতুল)</span>`;
-      if (p.includes('hasib')) return `<span class="partner-badge hasib"><i class="fa-solid fa-user-ninja"></i> Hasib (হাসিব)</span>`;
-      if (p.includes('tanjir')) return `<span class="partner-badge tanjir"><i class="fa-solid fa-user-gear"></i> Tanjir (তানজির)</span>`;
-      return `<span class="partner-badge fund-expense"><i class="fa-solid fa-handshake"></i> ${escapeHtml(pName)}</span>`;
+    function getPartnerBadge(name) {
+      if (!name) return '<span class="partner-badge">-</span>';
+      const n = name.trim();
+      const nLower = n.toLowerCase();
+
+      if (nLower.includes('ifty') || nLower.includes('ইফতি')) {
+        return `<span class="partner-badge ifty"><i class="fa-solid fa-user-tie"></i> Ifty (ইফতি)</span>`;
+      } else if (nLower.includes('ratul') || nLower.includes('রাতুল')) {
+        return `<span class="partner-badge ratul"><i class="fa-solid fa-user-astronaut"></i> Ratul (রাতুল)</span>`;
+      } else if (nLower.includes('hasib') || nLower.includes('হাসিব')) {
+        return `<span class="partner-badge hasib"><i class="fa-solid fa-user-ninja"></i> Hasib (হাসিব)</span>`;
+      } else if (nLower.includes('tanjir') || nLower.includes('তানজির')) {
+        return `<span class="partner-badge tanjir"><i class="fa-solid fa-user-gear"></i> Tanjir (তানজির)</span>`;
+      } else {
+        return `<span class="partner-badge fund-expense"><i class="fa-solid fa-handshake"></i> ${escapeHtml(name)}</span>`;
+      }
     }
 
     function renderPartnerTable() {
       const tbody = document.getElementById('partner-table-body');
-      const emptyState = document.getElementById('partner-empty-placeholder');
+      const emptyState = document.getElementById('partner-empty-state');
       if (!tbody) return;
       tbody.innerHTML = '';
 
-      const query = (document.getElementById('partner-search-input')?.value || '').trim().toLowerCase();
+      const query = (document.getElementById('partner-search-input')?.value || '').toLowerCase().trim();
       const sortVal = document.getElementById('partner-sort-select')?.value || 'date-desc';
 
-      const elFilterAll = document.getElementById('partner-filter-count-all');
-      if (elFilterAll) elFilterAll.textContent = allPartnerRecords.length;
+      let countAll = 0;
+      allPartnerRecords.forEach(r => countAll++);
+      const elCountAll = document.getElementById('partner-filter-count-all');
+      if (elCountAll) elCountAll.textContent = countAll;
 
       let filtered = allPartnerRecords.filter(r => {
         const type = r.type || 'deposit';
@@ -4245,14 +4670,15 @@ HTML_CONTENT = r'''<!DOCTYPE html>
         document.getElementById('partner-form-amount').value = '';
         document.getElementById('partner-form-desc').value = '';
         document.getElementById('partner-form-name').value = 'Shared Fund';
+        document.getElementById('partner-form-date').value = new Date().toISOString().split('T')[0];
       } else {
         document.getElementById('partner-type-dep').checked = true;
         document.getElementById('partner-form-amount').value = '250';
         document.getElementById('partner-form-desc').value = 'শুক্রবার ২৫০ টাকা জমা';
         document.getElementById('partner-form-name').value = 'Ifty';
+        populateFridayOptions();
       }
 
-      document.getElementById('partner-form-date').value = new Date().toISOString().split('T')[0];
       updatePartnerModalTheme();
       document.getElementById('partner-fund-modal').classList.add('active');
     }
@@ -4271,14 +4697,29 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       const isExp = document.getElementById('partner-type-exp').checked;
       const saveBtn = document.getElementById('partner-save-btn');
       const amtInput = document.getElementById('partner-form-amount');
+      const dateLabel = document.getElementById('partner-date-label');
+      const fridaySelect = document.getElementById('partner-form-friday-select');
+      const standardDate = document.getElementById('partner-form-date');
 
       if (isExp) {
+        dateLabel.innerHTML = 'খরচের তারিখ (Expense Date) <span class="req">*</span>';
+        if (fridaySelect) fridaySelect.style.display = 'none';
+        if (standardDate) {
+          standardDate.style.display = 'block';
+          if (!standardDate.value) standardDate.value = new Date().toISOString().split('T')[0];
+        }
         saveBtn.className = 'btn btn-outline';
         saveBtn.style.borderColor = 'rgba(239, 68, 68, 0.6)';
         saveBtn.style.color = '#f87171';
         saveBtn.innerHTML = '<i class="fa-solid fa-arrow-up-from-bracket"></i> <span>ফান্ড খরচ সেভ করুন</span>';
         amtInput.style.color = '#f87171';
       } else {
+        dateLabel.innerHTML = 'শুক্রবার জমার তারিখ (Friday Date) <span class="req">*</span>';
+        if (fridaySelect) {
+          fridaySelect.style.display = 'block';
+          if (!fridaySelect.value) populateFridayOptions();
+        }
+        if (standardDate) standardDate.style.display = 'none';
         saveBtn.className = 'btn btn-success';
         saveBtn.style.borderColor = '';
         saveBtn.style.color = '#ffffff';
@@ -4295,13 +4736,14 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       document.getElementById('partner-form-name').value = rec.partner || 'Ifty';
       document.getElementById('partner-form-method').value = rec.method || 'bKash';
       document.getElementById('partner-form-amount').value = rec.amount || 250;
-      document.getElementById('partner-form-date').value = rec.date || new Date().toISOString().split('T')[0];
       document.getElementById('partner-form-desc').value = rec.description || '';
 
       if (rec.type === 'expense') {
         document.getElementById('partner-type-exp').checked = true;
+        document.getElementById('partner-form-date').value = rec.date || new Date().toISOString().split('T')[0];
       } else {
         document.getElementById('partner-type-dep').checked = true;
+        populateFridayOptions(rec.date);
       }
 
       updatePartnerModalTheme();
@@ -4316,7 +4758,9 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       const partner = document.getElementById('partner-form-name').value;
       const method = document.getElementById('partner-form-method').value;
       const amount = parseFloat(document.getElementById('partner-form-amount').value || 0);
-      const date = document.getElementById('partner-form-date').value;
+      const date = isExp
+        ? document.getElementById('partner-form-date').value
+        : document.getElementById('partner-form-friday-select').value;
       const description = document.getElementById('partner-form-desc').value.trim();
 
       const recordObj = {
@@ -4385,6 +4829,82 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       showToast('🗑️ পার্টনার হিসাবটি মুছে ফেলা হয়েছে');
     }
 
+    // WhatsApp Reminder Send Functions
+    function sendPartnerWhatsAppReminder(partnerName) {
+      let rawPhone = partnerPhoneNumbers[partnerName] || '';
+      let phone = rawPhone.replace(/[^0-9]/g, '');
+
+      if (!phone) {
+        showToast(`⚠️ ${partnerName}-এর WhatsApp নাম্বার দেওয়া নেই! দয়া করে নাম্বার দিন।`);
+        openPartnerPhonesModal();
+        return;
+      }
+
+      // Format Bangladeshi phone number (8801...)
+      if (phone.startsWith('0')) {
+        phone = '88' + phone;
+      } else if (!phone.startsWith('880')) {
+        phone = '880' + phone;
+      }
+
+      const activeFri = getActiveFridayDate();
+      const friDisplay = formatFridayBengali(activeFri);
+
+      const msg = 
+`আসসালামু আলাইকুম ${partnerName} ভাই! 🤝
+আগামীকাল ${friDisplay}, আমাদের অফসাইড এক্সপোর্টস পার্টনার তহবিলের সাপ্তাহিক ২৫০ টাকা জমা দেওয়ার দিন।
+
+💳 জমা দেওয়ার মাধ্যম:
+• bKash: 01834093932 (Personal)
+• Rocket: 018927170930
+• অথবা নগদ ক্যাশ (Cash)
+
+টাকা পাঠিয়ে লেজার খাতায় বা মেসেঞ্জার/হোয়াটসঅ্যাপ গ্রুপে কনফার্ম করার অনুরোধ রইল। ধন্যবাদ! 🤝
+- অফসাইড এক্সপোর্টস (Offside Exports)`;
+
+      const waUrl = `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+      window.open(waUrl, '_blank');
+      showToast(`💬 ${partnerName}-এর WhatsApp রিমাইন্ডার উইন্ডো খোলা হয়েছে!`);
+    }
+
+    function sendAllDueWhatsAppReminders() {
+      const activeFri = getActiveFridayDate();
+      const duePartners = [];
+
+      ['Ifty', 'Ratul', 'Hasib', 'Tanjir'].forEach(name => {
+        const hasPaid = allPartnerRecords.some(r => 
+          r.type === 'deposit' && 
+          r.partner === name && 
+          r.date === activeFri
+        );
+        if (!hasPaid) {
+          duePartners.push(name);
+        }
+      });
+
+      if (duePartners.length === 0) {
+        showToast('🎉 মাশাল্লাহ! চলতি শুক্রবারের জন্য ৪ জন পার্টনারই ২৫০৳ জমা দিয়েছেন!');
+        return;
+      }
+
+      const namesBn = duePartners.map(n => {
+        if (n === 'Ifty') return 'ইফতি';
+        if (n === 'Ratul') return 'রাতুল';
+        if (n === 'Hasib') return 'হাসিব';
+        if (n === 'Tanjir') return 'তানজির';
+        return n;
+      }).join(', ');
+
+      const proceed = confirm(`চলতি শুক্রবারের ২৫০৳ তহবিল জমা এখনো বাকি আছে: ${namesBn}\n\nআপনি কি তাদের WhatsApp রিমাইন্ডার পাঠাতে চান?`);
+      if (!proceed) return;
+
+      duePartners.forEach((pName, idx) => {
+        setTimeout(() => {
+          sendPartnerWhatsAppReminder(pName);
+        }, idx * 800);
+      });
+    }
+
     function exportPartnerFundCSV() {
       if (allPartnerRecords.length === 0) {
         alert('এক্সপোর্ট করার মতো কোনো পার্টনার লেনদেন পাওয়া যায়নি।');
@@ -4411,6 +4931,7 @@ HTML_CONTENT = r'''<!DOCTYPE html>
       document.body.removeChild(a);
       showToast('📥 পার্টনার খাতা Excel (CSV) ডাউনলোড সম্পন্ন হয়েছে');
     }
+
 
     // Master persist function: updates allRecords, saves to LocalStorage, syncs to IndexedDB
     function persistRecords(updatedRecords) {
